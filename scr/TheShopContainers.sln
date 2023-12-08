@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiGateways", "ApiGateways", "{857D1BFC-2CAA-42D7-850A-EDA20C70ED49}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MicroServices", "MicroServices", "{E9A2382F-CB9E-44D1-9343-1F4A37236C7A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebApp", "WebApp", "{14D7447A-48BB-4710-B37D-7DD159CF7436}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebShopMVC", "Web App\WebShopMVC\WebShopMVC.csproj", "{09DD21B2-36E7-4DA4-86F8-125D77DDB11A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web.ShopHttpAggregator", "ApiGateways\Web.ShopHttpAggregator\Web.ShopHttpAggregator.csproj", "{4C5458D1-6EB6-4304-B844-B4B66D7DD949}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasketServiceAPI", "MicroServices\Basket\BasketServiceAPI\BasketServiceAPI.csproj", "{8E16A2F1-08C3-4F6D-BFEF-B8DBF52890DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{09DD21B2-36E7-4DA4-86F8-125D77DDB11A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09DD21B2-36E7-4DA4-86F8-125D77DDB11A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09DD21B2-36E7-4DA4-86F8-125D77DDB11A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09DD21B2-36E7-4DA4-86F8-125D77DDB11A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C5458D1-6EB6-4304-B844-B4B66D7DD949}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C5458D1-6EB6-4304-B844-B4B66D7DD949}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C5458D1-6EB6-4304-B844-B4B66D7DD949}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C5458D1-6EB6-4304-B844-B4B66D7DD949}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E16A2F1-08C3-4F6D-BFEF-B8DBF52890DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E16A2F1-08C3-4F6D-BFEF-B8DBF52890DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E16A2F1-08C3-4F6D-BFEF-B8DBF52890DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E16A2F1-08C3-4F6D-BFEF-B8DBF52890DD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{09DD21B2-36E7-4DA4-86F8-125D77DDB11A} = {14D7447A-48BB-4710-B37D-7DD159CF7436}
+		{4C5458D1-6EB6-4304-B844-B4B66D7DD949} = {857D1BFC-2CAA-42D7-850A-EDA20C70ED49}
+		{8E16A2F1-08C3-4F6D-BFEF-B8DBF52890DD} = {E9A2382F-CB9E-44D1-9343-1F4A37236C7A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {33345D89-1D7A-4C72-A89E-85BD9BDC80BD}
+	EndGlobalSection
+EndGlobal
