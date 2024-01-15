@@ -1,0 +1,13 @@
+CREATE TABLE Feedbacks
+(
+    Id SERIAL PRIMARY KEY,
+    FeedBack CHARACTER VARYING(200),
+    ScoreId integer,
+    OrderId integer
+);
+
+CREATE TABLE Score
+(
+    Id SERIAL PRIMARY KEY,
+    Score CHARACTER VARYING(200)
+);
