@@ -8,17 +8,17 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["MicroServices/Order/OrderAPI/OrderAPI.csproj", "MicroServices/Order/OrderAPI/"]
-RUN dotnet restore "./MicroServices/Order/OrderAPI/./OrderAPI.csproj"
+COPY ["GatewayAPI/Web.GatewayAPI/Web.GatewayAPI.csproj", "GatewayAPI/Web.GatewayAPI/"]
+RUN dotnet restore "./GatewayAPI/Web.GatewayAPI/./Web.GatewayAPI.csproj"
 COPY . .
-WORKDIR "/src/MicroServices/Order/OrderAPI"
-RUN dotnet build "./OrderAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/GatewayAPI/Web.GatewayAPI"
+RUN dotnet build "./Web.GatewayAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./OrderAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Web.GatewayAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "OrderAPI.dll"]
+ENTRYPOINT ["dotnet", "Web.GatewayAPI.dll"]
