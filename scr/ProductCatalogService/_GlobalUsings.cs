@@ -1,0 +1,10 @@
+﻿global using Microsoft.EntityFrameworkCore;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.OpenApi.Models;
+global using ProductCatalogService.Apis;
+global using ProductCatalogService.DTO;
+global using ProductCatalogService.Interfaces;
+global using ProductCatalogService.Interfaces.Models;
+global using ProductCatalogService.Interfaces.Repositorys;
+global using ProductCatalogService.Repositorys;
+global using Swashbuckle.AspNetCore.SwaggerGen;
