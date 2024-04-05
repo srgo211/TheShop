@@ -274,13 +274,20 @@ public class HandleUpdateService
 
     async Task<Message> OtherMsg(Message message)
     {
-        string url = "https://disk.yandex.ru/i/9hfkr-gp4YWcKQ";
+        //string url = "https://disk.yandex.ru/i/9hfkr-gp4YWcKQ";
+        string url = "https://0ac8-31-171-195-46.ngrok-free.app/img/1.jpg";
         //string url = "http://localhost:8080/img/1.jpg";
         string link = $"<a href=\"{url}\">link</a>";
         string text = "Нам пока не нужны эти данные! Спасибо!\n" + link;
 
+        text = "<b>Просмотр товара в категории: <u>Подарки, книги, игры</u></b>\n\n" +
+               "<s>strikethrough</s>"+
+               "Фанты-флирт №8 Бутылочка\n\n" +
+               "<b>Описание:</b><code>Фанты «Бутылочка» — это игра-флирт для компании до десяти человек. Здесь не надо крутить бутылочку, зато можно здорово оторваться на горячей вечеринке или получить массу новых ощущений в отпуске или в дороге.</code>\n" +
+               $"<b>Цена:</b> 620.00 | шт<a href=\"{url}\">.</a>"; 
+
         return await _botClient.SendTextMessageAsync(chatId: message.Chat.Id, text: text, parseMode: ParseMode.Html,
-            disableWebPagePreview:true);
+            disableWebPagePreview:false);
     }
 
     async Task<Message> SendPhotoAsync(Message message, string photoPath)

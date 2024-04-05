@@ -28,10 +28,13 @@ public class ProductApi : IApi
           .WithTags("Read");
 
 
+        app.MapGet($"{endpoint}/paged", (int page, int itemsPerPage, IProductRepository repository) => GetPaged(page, itemsPerPage, repository))
+            .Produces<List<IProduct>>(StatusCodes.Status200OK)
+            .WithName("GetPageProducts")
+            .WithTags("Read");
 
-     
 
-    
+
 
 
         app.MapDelete($"{endpoint}/delete", (int id, bool isAdmin,IProductRepository repository) => Delete(id, isAdmin, repository))
@@ -53,8 +56,7 @@ public class ProductApi : IApi
 
     }
 
-
-
+   
     private async Task<IResult> Update(int idProduct, bool isAdmin, [FromBody] Product product, IProductRepository repository)
     {
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
@@ -80,7 +82,13 @@ public class ProductApi : IApi
         ? Results.Ok(products)
         : Results.NotFound();
 
- 
+    private async Task<IResult> GetPaged(int page, int itemsPerPage, IProductRepository repository)
+    {
+      return  await repository.GetPagedAsync(page,itemsPerPage) is List<Product> products
+            ? Results.Ok(products)
+            : Results.NotFound();
+    }
+
 
     private async Task<IResult> AddProduct([FromBody] Product product, bool isAdmin, IProductRepository repository)
     {

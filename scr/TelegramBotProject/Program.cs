@@ -1,5 +1,7 @@
 
 
+using TelegramBotProject.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
 var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
@@ -12,6 +14,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient("TelegramWebhook")
     .AddTypedClient<ITelegramBotClient>(httpClient => new TelegramBotClient(botToken, httpClient));
+
+builder.Services.AddHttpClient<IHttpClientService, HttpClientService>();
 
 
 builder.Services.AddScoped<HandleUpdateService>();

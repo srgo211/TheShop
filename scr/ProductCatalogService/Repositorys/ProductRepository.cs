@@ -31,6 +31,9 @@ public class ProductRepository : IProductRepository
             .OrderBy(p => p.Id)  // Замените на нужное поле для сортировки
             .Skip(skipCount)
             .Take(itemsPerPage)
+            .Include(p => p.Brand)
+            .Include(p => p.Categorie)
+            .Include(p => p.Images)
             .ToListAsync();
     }
     public async Task<List<Product>> GetProductByNameAsync(string name)
