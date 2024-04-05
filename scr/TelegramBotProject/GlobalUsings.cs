@@ -1,0 +1,11 @@
+﻿global using Telegram.Bot;
+global using Telegram.Bot.Exceptions;
+global using Telegram.Bot.Types;
+global using Telegram.Bot.Types.Enums;
+global using Telegram.Bot.Types.InlineQueryResults;
+global using Telegram.Bot.Types.ReplyMarkups;
+global using Newtonsoft.Json;
+global using System.Reflection;
+global using TelegramBotProject;
+global using TelegramBotProject.Services;
+global using TelegramBotProject.Settings;
