@@ -1,11 +1,16 @@
-﻿using TelegramBotProject.Interfaces;
+﻿using Telegram.Bot.Types;
+using TelegramBotProject.Interfaces;
+using TelegramBotProject.Interfaces.Models;
 
 namespace TelegramBotProject.Services;
 
 public class CallbackQueryService : BaseService, ICallbackQueryService
 {
-    public CallbackQueryService(BotConfiguration botConfig, ITelegramBotClient bot, CommandSwitchController commandSwitchController) : base(botConfig, bot, commandSwitchController)
+    private readonly IHttpClientService httpClient;
+    public CallbackQueryService(BotConfiguration botConfig, ITelegramBotClient bot, CommandSwitchController commandSwitchController, IHttpClientService httpClient) 
+        : base(botConfig, bot, commandSwitchController)
     {
+        this.httpClient = httpClient;
     }
 
     public async Task HandleCallbackQueryAsync(CallbackQuery callbackQuery)
@@ -32,18 +37,83 @@ public class CallbackQueryService : BaseService, ICallbackQueryService
             return;
         }
 
+        string[] callbacks = default;
+        if (callback.Contains("|"))
+        {
+            callbacks = callback.Split('|');
+        }
 
+        if (callbacks is not null && callbacks.Length > 0)
+        {
+            callback = callbacks[0];
+        }
+
+        int page = 1;
         switch (callback)
         {
             case TextComands.subscribe:
                 UpStatusCommand(userId, TypeStatusCommand.Wait);
                 Task<Message>? msg = NotificationSubscription(message);
-                break;
+                return;
             case TextComands.unsubscribe:
-                await bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Вы отписались от уведомлений");
                 UpStatusCommand(userId, TypeStatusCommand.Disable);
-                break;
+                await bot.AnswerCallbackQueryAsync(callbackQuery.Id,
+                    $"Вы отписались от уведомлений", 
+                    cacheTime:100,
+                    showAlert:true);
+               await ProductСatalog(message, page, 1);
+               return;
+
+            case TextComands.nextProductBtn:
+                int.TryParse(callbacks.Last(), out  page);
+                await ProductСatalogEdite(callbackQuery, page, 1);
+                return;
+
+            case TextComands.prevProductBtn:
+                int.TryParse(callbacks.Last(), out page);
+                await ProductСatalogEdite(callbackQuery, page, 1);
+                return;
+
+
+            default: await bot.AnswerCallbackQueryAsync(callbackQuery.Id,callback,cacheTime: 2000, showAlert: false);
+            break;
+
         }
+        
+       
+
+    }
+
+
+    protected override async Task<IProduct> GetProduct(int page, int itemsPerPage)
+    {
+        return await httpClient.GetProduct(page, itemsPerPage);
+
+    }
+
+    async Task edite(CallbackQuery callbackQuery)
+    {
+        // ID чата и ID сообщения, которое нужно изменить
+        var chatId = callbackQuery.Message.Chat.Id;
+        var messageId = callbackQuery.Message.MessageId;
+
+        // Новый текст сообщения и набор кнопок
+        var newText = "Измененный текст сообщения";
+        var newInlineKeyboard = new InlineKeyboardMarkup(new[]
+        {
+            InlineKeyboardButton.WithCallbackData("New button", "new_action")
+        });
+
+
+        // Изменение текста сообщения
+        await bot.EditMessageTextAsync(
+            chatId: chatId,
+            messageId: messageId,
+            text: newText,
+            replyMarkup: newInlineKeyboard,
+            parseMode:ParseMode.Html
+        );
+        await bot.AnswerCallbackQueryAsync(callbackQuery.Id);
 
     }
 }

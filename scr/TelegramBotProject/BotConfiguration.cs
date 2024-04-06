@@ -9,4 +9,5 @@ public class BotConfiguration
 
     public string? HostAddress { get; init; }
     public string? HostFilesAddress { get; init; }
+    public string? HostAddressCatalogProduct { get; init; }
 }

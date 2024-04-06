@@ -1,15 +1,24 @@
 ﻿using Microsoft.Extensions.Logging;
 using TelegramBotProject.Interfaces;
+using TelegramBotProject.Interfaces.Models;
 
 namespace TelegramBotProject.Services;
 
 public class MessageService : BaseService, IMessageService
 {
     private readonly ILogger<MessageService> logger;
+    private readonly IHttpClientService httpClient;
 
 
-    public MessageService(BotConfiguration botConfig, ITelegramBotClient bot, CommandSwitchController commandSwitchController, ILogger<MessageService> logger) : base(botConfig, bot, commandSwitchController)
+    public MessageService(
+        BotConfiguration botConfig, 
+        ITelegramBotClient bot, 
+        CommandSwitchController commandSwitchController,
+        IHttpClientService httpClient,
+        ILogger<MessageService> logger) 
+        : base(botConfig, bot, commandSwitchController)
     {
+        this.httpClient = httpClient;
         this.logger = logger;
     }
 
@@ -40,7 +49,7 @@ public class MessageService : BaseService, IMessageService
         {
             TextComands.start => Start(message),
             TextComands.menu => MenuStore(message),
-            //TextComands.productСatalog => ProductСatalog(message),
+            TextComands.productСatalog => ProductСatalog(message, 1, 1),
             TextComands.AdminPanel => OtherMsg(message),
             TextComands.muOrders => OtherMsg(message),
             TextComands.subscribe => OtherMsg(message),
@@ -48,5 +57,11 @@ public class MessageService : BaseService, IMessageService
             _ => OtherMsg(message)
         };
         Message sentMessage = await action;
+    }
+
+    protected override async Task<IProduct> GetProduct(int page, int itemsPerPage)
+    {
+        return await httpClient.GetProduct(page, itemsPerPage);
+       
     }
 }

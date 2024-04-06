@@ -40,7 +40,8 @@ builder.Services.AddSingleton<ITelegramBotClient>(sp => new TelegramBotClient(bo
 
 
 
-builder.Services.AddTransient<IHttpClientService, HttpClientService>();
+builder.Services.AddScoped<IHttpClientService, HttpClientService>();
+
 builder.Services.AddTransient<ICommandHandler, CommandHandler>();
 builder.Services.AddTransient<ICallbackQueryService, CallbackQueryService>();
 builder.Services.AddTransient<IMessageService, MessageService>();

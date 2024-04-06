@@ -1,8 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Net.Http;
-using Telegram.Bot.Types;
-using TelegramBotProject.BusinessLogic;
+﻿using TelegramBotProject.BusinessLogic;
+using TelegramBotProject.DTO;
 using TelegramBotProject.Interfaces;
+using TelegramBotProject.Interfaces.Models;
 
 namespace TelegramBotProject.Services;
 
@@ -149,19 +148,129 @@ public class BaseService
     }
 
 
-    //private async Task<Message> ProductСatalog(Message message)
-    //{
-    //    string url = "http://localhost:5277/products/paged?page=1&itemsPerPage=1";
-    //    var response = await httpClient.GetAsync(url);
-    //    if (response.IsSuccessStatusCode)
-    //    {
+    protected async Task<Message> ProductСatalog(Message message, int page, int itemsPerPage)
+    {
 
-    //        string content = await response.Content.ReadAsStringAsync();
-    //        logger.LogInformation(content);
-    //    }
+        var product = await GetProduct(page, itemsPerPage);
 
-    //    return message;
-    //}
+        string url = $"{botConfig.HostFilesAddress}/img/{product.Images.FirstOrDefault()}";
+        string link = $"<a href=\"{url}\">link</a>";
+
+        int productId                 = product.Id;
+        string productName            = product.Name;
+        var productPrice       = product.Price;
+        var productStockQuantity   = product.StockQuantity;
+        var productDescription  = product.Description;
+        string brandName              = product.Brand.Name;
+        string categorieName          = product.Categorie.Name;
+
+        string text = 
+               $"<b>Просмотр товара в категории: <u>{categorieName}</u></b>\n\n" +
+               $"<b>{productName}</b> | <i>{brandName}</i>\n\n" +
+               $"<b>Описание:</b><code>{productDescription}</code>\n\n" +
+               $"<b>Цена:</b> {productPrice} руб. | {productStockQuantity} шт<a href=\"{url}\">.</a>";
+
+
+        int pagePrev = page-1 <=0 ? 1 : page-1;
+        int pageNext = page + 1;
+        InlineKeyboardMarkup keyboard = new(
+            new[]
+            {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(TextComands.prevProductBtn, $"{TextComands.prevProductBtn}|{pagePrev}"),
+                    InlineKeyboardButton.WithCallbackData($"ID: {productId}", productId.ToString()),
+                    InlineKeyboardButton.WithCallbackData(TextComands.nextProductBtn, $"{TextComands.nextProductBtn}|{pageNext}"),
+                },
+
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(TextComands.backBtn, TextComands.backBtn),
+                    InlineKeyboardButton.WithCallbackData(TextComands.addOrderBtn, TextComands.addOrderBtn),
+                },
+
+            });
+
+
+
+        return await bot.SendTextMessageAsync(chatId: message.Chat.Id, 
+            text: text, 
+            parseMode: ParseMode.Html,
+            replyMarkup:keyboard,
+            disableWebPagePreview: false
+            );
+
+
+
+        return message;
+    }
+
+    protected async Task<Message> ProductСatalogEdite(CallbackQuery callbackQuery, int page, int itemsPerPage)
+    {
+
+        // ID чата и ID сообщения, которое нужно изменить
+        var chatId   = callbackQuery.Message.Chat.Id;
+        var messageId = callbackQuery.Message.MessageId;
+
+
+        var product = await GetProduct(page, itemsPerPage);
+
+        string url = $"{botConfig.HostFilesAddress}/img/{product.Images.FirstOrDefault()?.Name}";
+        string link = $"<a href=\"{url}\">link</a>";
+
+        int productId = product.Id;
+        string productName = product.Name;
+        var productPrice = product.Price;
+        var productStockQuantity = product.StockQuantity;
+        var productDescription = product.Description;
+        string brandName = product.Brand.Name;
+        string categorieName = product.Categorie.Name;
+
+        string text =
+               $"<b>Просмотр товара в категории: <u>{categorieName}</u></b>\n\n" +
+               $"<b>{productName}</b> | <i>{brandName}</i>\n\n" +
+               $"<b>Описание: </b><code>{productDescription}</code>\n\n" +
+               $"<b>Цена:</b> {productPrice} руб. | {productStockQuantity} шт<a href=\"{url}\">.</a>";
+
+
+        int pagePrev = page - 1 <= 0 ? 1 : page - 1;
+        int pageNext = page + 1;
+        InlineKeyboardMarkup keyboard = new(
+            new[]
+            {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(TextComands.prevProductBtn, $"{TextComands.prevProductBtn}|{pagePrev}"),
+                    InlineKeyboardButton.WithCallbackData($"ID: {productId}", productId.ToString()),
+                    InlineKeyboardButton.WithCallbackData(TextComands.nextProductBtn, $"{TextComands.nextProductBtn}|{pageNext}"),
+                },
+
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(TextComands.backBtn, TextComands.backBtn),
+                    InlineKeyboardButton.WithCallbackData(TextComands.addOrderBtn, TextComands.addOrderBtn),
+                },
+
+            }
+            
+            );
+
+
+
+        // Изменение текста сообщения
+        var message = await bot.EditMessageTextAsync(
+            chatId: chatId,
+            messageId: messageId,
+            text: text,
+            replyMarkup: keyboard,
+            parseMode:ParseMode.Html
+            
+        );
+        await bot.AnswerCallbackQueryAsync(callbackQuery.Id);
+
+        return message;
+    }
+
 
     protected async Task<Message> SendProduct(Message message)
     {
@@ -189,4 +298,10 @@ public class BaseService
             bool updateSuccess = commandSwitchController.UserCommandStatuses.TryUpdate(userId, newModel, value);
         }
     }
+
+    protected virtual async Task<IProduct> GetProduct(int page, int itemsPerPage)
+    {
+        return new Product();
+    }
+
 }
