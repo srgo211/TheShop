@@ -4,7 +4,7 @@ public static class TextComands
 {
     public const string menu = "/start";
     public const string productСatalog = "Каталог товаров";
-    public const string subscribe = "Подписаться на рассылку";
+    public const string subscribe   = "Подписаться на рассылку";
     public const string unsubscribe = "Отписаться на рассылку";
     public const string AdminPanel = "Панель администратора";
     public const string muOrders = "Мои заказы";

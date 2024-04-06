@@ -1,20 +1,14 @@
-﻿using System.Net.Http;
-using System;
-using System.Net.Http.Headers;
+﻿using Microsoft.Extensions.Options;
 using System.Text;
-using File = System.IO.File;
+using TelegramBotProject.BusinessLogic;
+using TelegramBotProject.Interfaces;
 
 namespace TelegramBotProject.Services;
 
-public class HandleUpdateService
+public class HandleUpdateService : Base
 {
-    private readonly ITelegramBotClient _botClient;
-    private readonly ILogger<HandleUpdateService> _logger;
-
-    public HandleUpdateService(ITelegramBotClient botClient, ILogger<HandleUpdateService> logger)
+    public HandleUpdateService(ITelegramBotClient bot, IHttpClientService httpClient, ILogger<HandleUpdateService> logger, IOptions<BotConfiguration> botConfig, CommandSwitchController commandSwitchController, CallbackQuerysService callbackQuerysService) : base(bot, httpClient, logger, botConfig, commandSwitchController, callbackQuerysService)
     {
-        _botClient = botClient;
-        _logger = logger;
     }
 
     public async Task UpdateMessageAsync(Update update)
@@ -29,7 +23,7 @@ public class HandleUpdateService
             // UpdateType.Poll:
             UpdateType.Message            => BotOnMessageReceived(update.Message!),
             UpdateType.EditedMessage      => BotOnMessageReceived(update.EditedMessage!),
-            UpdateType.CallbackQuery      => BotOnCallbackQueryReceived(update.CallbackQuery!),
+            UpdateType.CallbackQuery      => callbackQuerysService.BotOnCallbackQueryReceived(update.CallbackQuery!),//BotOnCallbackQueryReceived(update.CallbackQuery!),
             UpdateType.InlineQuery        => BotOnInlineQueryReceived(update.InlineQuery!),
             UpdateType.ChosenInlineResult => BotOnChosenInlineResultReceived(update.ChosenInlineResult!),
             _ => UnknownUpdateHandlerAsync(update)
@@ -47,27 +41,38 @@ public class HandleUpdateService
 
     private async Task BotOnMessageReceived(Message message)
     {
-        _logger.LogInformation("Receive message type: {messageType}", message.Type);
+        logger.LogInformation("Receive message type: {messageType}", message.Type);
         if (message.Type != MessageType.Text)
             return;
 
-        var action = message.Text!.Split(' ')[0] switch
+        long userId = message.Contact?.UserId ?? default;
+        ICommandStatuses? commandStatuses = commandSwitchController.UserCommandStatuses.GetOrAdd(userId, new CommandStatuses());
+
+        if (commandStatuses.Subscription == TypeStatusCommand.Wait)
+        {
+            Task<Message>? msg = NotificationSubscription(message);
+            return;
+        }
+
+
+
+        Task<Message>? action = message.Text?.Trim() switch
         {
             TextComands.menu => MenuStore(message),
-            TextComands.productСatalog => OtherMsg(message),
+            TextComands.productСatalog => ProductСatalog(message),
             TextComands.AdminPanel => OtherMsg(message),
             TextComands.muOrders => OtherMsg(message),
             TextComands.subscribe => OtherMsg(message),
             TextComands.unsubscribe => OtherMsg(message),
-            "/inline" => SendInlineKeyboard(_botClient, message),
-            "/keyboard" => SendReplyKeyboard(_botClient, message),
-            "/remove" => RemoveKeyboard(_botClient, message),
-            "/photo" => SendFile(_botClient, message),
-            "/request" => RequestContactAndLocation(_botClient, message),
+            "/inline" => SendInlineKeyboard(bot, message),
+            "/keyboard" => SendReplyKeyboard(bot, message),
+            "/remove" => RemoveKeyboard(bot, message),
+            "/photo" => SendFile(bot, message),
+            "/request" => RequestContactAndLocation(bot, message),
             _ => OtherMsg(message)
         };
         Message sentMessage = await action;
-        _logger.LogInformation("The message was sent with id: {sentMessageId}", sentMessage.MessageId);
+        logger.LogInformation("The message was sent with id: {sentMessageId}", sentMessage.MessageId);
 
     
         async Task<Message> SendInlineKeyboard(ITelegramBotClient bot, Message message)
@@ -79,7 +84,7 @@ public class HandleUpdateService
 
             const string filePath = @"D:\Test\Images\1.jpg";
             using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
+            string fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
 
             string text = @"Просмотр товара в категории: Подарки, книги, игры
                             Набор ""Geisha's Secret. Экзотический зеленый чай"" 5 предмето";
@@ -149,7 +154,7 @@ public class HandleUpdateService
 
             const string filePath = @"Files/tux.png";
             using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
+            string fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
 
             return await bot.SendPhotoAsync(chatId: message.Chat.Id,
                                             photo: new InputFileStream(fileStream, fileName),
@@ -186,23 +191,74 @@ public class HandleUpdateService
         }
     }
 
-    
+    private async Task<Message>? NotificationSubscription(Message message)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task<Message> ProductСatalog(Message message)
+    {
+        string url = "http://localhost:5277/products/paged?page=1&itemsPerPage=1";
+        var response = await httpClient.GetAsync(url);
+        if (response.IsSuccessStatusCode)
+        {
+            
+            string content = await response.Content.ReadAsStringAsync();
+            logger.LogInformation(content);
+        }
+
+        return message;
+    }
+
     private async Task BotOnCallbackQueryReceived(CallbackQuery callbackQuery)
     {
-        await _botClient.AnswerCallbackQueryAsync(
-            callbackQueryId: callbackQuery.Id,
-            text: $"Received {callbackQuery.Data}");
+        string callback = callbackQuery?.Data;
 
-        await _botClient.SendTextMessageAsync(
-            chatId: callbackQuery.Message.Chat.Id,
-            text: $"Received {callbackQuery.Data}");
+
+        switch (callback)
+        {
+            case TextComands.subscribe:   break;
+            case TextComands.unsubscribe: break;
+        }
+
+        var loginUrl = new LoginUrl
+        {
+            Url = "https://yourdomain.com/login?bot_id=YOUR_BOT_ID&request_access=email", // Your login URL
+            ForwardText = "Login to share your email",
+            BotUsername = "your_bot_username", // Without @
+            RequestWriteAccess = true
+        };
+
+        var inlineKeyboard = new InlineKeyboardMarkup(new[]
+        {
+            InlineKeyboardButton.WithLoginUrl("Share Email", loginUrl)
+        });
+
+
+        // Идентификатор чата
+        var chatId = callbackQuery.Message?.Chat.Id;
+
+        // Идентификатор сообщения
+        var messageId = callbackQuery.Message.MessageId;
+
+      
+        
+        // Отправка уведомления пользователю, который совершил CallbackQuery
+        await bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Вы выбрали: {callback}");
+
+
+
+        await bot.SendTextMessageAsync(
+            chatId: chatId,
+            text: "Please share your email with us:"
+            );
     }
 
     #region Inline Mode
 
     private async Task BotOnInlineQueryReceived(InlineQuery inlineQuery)
     {
-        _logger.LogInformation("Received inline query from: {inlineQueryFromId}", inlineQuery.From.Id);
+        logger.LogInformation("Received inline query from: {inlineQueryFromId}", inlineQuery.From.Id);
 
         InlineQueryResult[] results = {
             // displayed result
@@ -215,7 +271,7 @@ public class HandleUpdateService
             )
         };
 
-        await _botClient.AnswerInlineQueryAsync(inlineQueryId: inlineQuery.Id,
+        await bot.AnswerInlineQueryAsync(inlineQueryId: inlineQuery.Id,
                                                 results: results,
                                                 isPersonal: true,
                                                 cacheTime: 0);
@@ -223,7 +279,7 @@ public class HandleUpdateService
 
     private Task BotOnChosenInlineResultReceived(ChosenInlineResult chosenInlineResult)
     {
-        _logger.LogInformation("Received inline result: {chosenInlineResultId}", chosenInlineResult.ResultId);
+        logger.LogInformation("Received inline result: {chosenInlineResultId}", chosenInlineResult.ResultId);
         return Task.CompletedTask;
     }
 
@@ -231,7 +287,7 @@ public class HandleUpdateService
 
     private Task UnknownUpdateHandlerAsync(Update update)
     {
-        _logger.LogInformation("Unknown update type: {updateType}", update.Type);
+        logger.LogInformation("Unknown update type: {updateType}", update.Type);
         return Task.CompletedTask;
     }
 
@@ -243,33 +299,13 @@ public class HandleUpdateService
             _ => exception.ToString()
         };
 
-        _logger.LogInformation("HandleError: {ErrorMessage}", ErrorMessage);
+        logger.LogInformation("HandleError: {ErrorMessage}", ErrorMessage);
         return Task.CompletedTask;
     }
 
 
 
-    async Task<Message> MenuStore(Message message)
-    {
-        string text = "Добро пожаловать в бот интернет магазина!";
-        ReplyKeyboardMarkup replyKeyboardMarkup = new(
-            new[]
-            {
-                new KeyboardButton[] { TextComands.productСatalog, TextComands.muOrders },
-                new KeyboardButton[] { TextComands.subscribe, TextComands.unsubscribe },
-                new KeyboardButton[] {TextComands.AdminPanel},
-            })
-        {
-            ResizeKeyboard = true
-        };
-
-
-
-
-        return await _botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-             text: text,
-             replyMarkup: replyKeyboardMarkup);
-    }
+    
 
 
     async Task<Message> OtherMsg(Message message)
@@ -286,7 +322,7 @@ public class HandleUpdateService
                "<b>Описание:</b><code>Фанты «Бутылочка» — это игра-флирт для компании до десяти человек. Здесь не надо крутить бутылочку, зато можно здорово оторваться на горячей вечеринке или получить массу новых ощущений в отпуске или в дороге.</code>\n" +
                $"<b>Цена:</b> 620.00 | шт<a href=\"{url}\">.</a>"; 
 
-        return await _botClient.SendTextMessageAsync(chatId: message.Chat.Id, text: text, parseMode: ParseMode.Html,
+        return await bot.SendTextMessageAsync(chatId: message.Chat.Id, text: text, parseMode: ParseMode.Html,
             disableWebPagePreview:false);
     }
 
@@ -316,7 +352,7 @@ public class HandleUpdateService
 
         using (var fileStream = new FileStream(photoPath, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
-            return await _botClient.SendPhotoAsync(
+            return await bot.SendPhotoAsync(
                 chatId: message.Chat.Id,
                 photo: new InputFileStream(fileStream, Path.GetFileName(photoPath)),
                 caption: "Here is your photo!",

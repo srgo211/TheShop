@@ -1,6 +1,6 @@
 ﻿namespace TelegramBotProject;
 
-public record BotConfiguration
+public class BotConfiguration
 {
     public string? BotToken { get; init; }
 
@@ -8,4 +8,5 @@ public record BotConfiguration
     public string? EscapedBotToken => BotToken?.Replace(':', '_');
 
     public string? HostAddress { get; init; }
+    public string? HostFilesAddress { get; init; }
 }

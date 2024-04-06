@@ -21,8 +21,6 @@ public class ConfigureWebhook : IHostedService
         using var scope = _services.CreateScope();
         var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
 
-
-        //var webhookAddress = @$"{_botConfig.HostAddress}/bot{_botConfig.EscapedBotToken}";
         var webhookAddress = @$"{_botConfig.HostAddress}/getUpdates";
 
 

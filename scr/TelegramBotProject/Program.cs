@@ -1,26 +1,34 @@
 
 
+using Microsoft.Extensions.Configuration;
+using TelegramBotProject.BusinessLogic;
 using TelegramBotProject.Interfaces;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-var botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
-var botToken = botConfig.BotToken ?? string.Empty;
+//BotConfiguration botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
+
+
+IConfigurationSection configurationSection = builder.Configuration.GetSection("BotConfiguration");
+builder.Services.Configure<BotConfiguration>(configurationSection);
+string botToken = configurationSection.Get<BotConfiguration>().BotToken ?? string.Empty;
+
 
 
 builder.Services.AddHostedService<ConfigureWebhook>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHttpClient("TelegramWebhook")
-    .AddTypedClient<ITelegramBotClient>(httpClient => new TelegramBotClient(botToken, httpClient));
 
+builder.Services.AddHttpClient("TelegramWebhook").AddTypedClient<ITelegramBotClient>(httpClient => new TelegramBotClient(botToken, httpClient));
 builder.Services.AddHttpClient<IHttpClientService, HttpClientService>();
-
+builder.Services.AddSingleton<BotConfiguration>();
+builder.Services.AddSingleton<CommandSwitchController>();
 
 builder.Services.AddScoped<HandleUpdateService>();
+builder.Services.AddScoped<CallbackQuerysService>();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 
 if (app.Environment.IsDevelopment())
