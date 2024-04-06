@@ -1,11 +1,25 @@
+using MongoDB.Driver;
+using NotificationServiceAPI.Interfaces;
+using NotificationServiceAPI.Repositorys;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+// MongoDB configuration
+var mongoClient = new MongoClient(builder.Configuration["MongoDB:ConnectionString"]);
+var databaseName = builder.Configuration["MongoDB:DatabaseName"];
+
+// Register repositories with DI container
+builder.Services.AddSingleton<IMongoClient>(mongoClient);
+builder.Services.AddScoped<IUserRepository>(sp => new UserRepository(mongoClient, databaseName));
+builder.Services.AddScoped<INotificationRepository>(sp => new NotificationRepository(mongoClient, databaseName));
+
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -13,25 +27,5 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
 
 app.Run();

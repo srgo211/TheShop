@@ -8,7 +8,7 @@ public class NotificationRepository : INotificationRepository
 {
     private readonly IMongoCollection<User> _usersCollection;
 
-    public NotificationRepository(IMongoClient mongoClient, string databaseName = "UserDb")
+    public NotificationRepository(IMongoClient mongoClient, string databaseName)
     {
         _usersCollection = mongoClient.GetDatabase(databaseName).GetCollection<User>("Users");
     }

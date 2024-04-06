@@ -8,7 +8,7 @@ public class UserRepository : IUserRepository
 {
     private readonly IMongoCollection<User> _userCollection;
 
-    public UserRepository(IMongoClient mongoClient, string databaseName = "UserDb")
+    public UserRepository(IMongoClient mongoClient, string databaseName)
     {
         _userCollection = mongoClient.GetDatabase(databaseName).GetCollection<User>("Users");
     }
