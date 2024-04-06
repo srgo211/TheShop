@@ -13,23 +13,23 @@ public class NotificationRepository : INotificationRepository
         _usersCollection = mongoClient.GetDatabase(databaseName).GetCollection<User>("Users");
     }
 
-    public async Task AddNotificationToUserAsync(Guid userId, Notification notification)
+    public async Task AddNotificationToUserAsync(Guid id , Notification notification)
     {
-        var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+        var filter = Builders<User>.Filter.Eq(u => u.Id, id);
         var update = Builders<User>.Update.Push(u => u.Notifications, notification);
         await _usersCollection.UpdateOneAsync(filter, update);
     }
 
-    public async Task AddNotificationsToUserAsync(Guid userId, List<Notification> notifications)
+    public async Task AddNotificationsToUserAsync(Guid id, List<Notification> notifications)
     {
-        var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+        var filter = Builders<User>.Filter.Eq(u => u.Id, id);
         var update = Builders<User>.Update.PushEach(u => u.Notifications, notifications);
         await _usersCollection.UpdateOneAsync(filter, update);
     }
 
-    public async Task UpdateUserNotificationAsync(Guid userId, Notification notification)
+    public async Task UpdateUserNotificationAsync(Guid id, Notification notification)
     {
-        var userFilter = Builders<User>.Filter.Eq(u => u.Id, userId);
+        var userFilter = Builders<User>.Filter.Eq(u => u.Id, id);
         var notificationFilter = Builders<User>.Filter.ElemMatch(u => u.Notifications, n => n.Id == notification.Id);
         var combinedFilter = Builders<User>.Filter.And(userFilter, notificationFilter);
 
@@ -37,9 +37,9 @@ public class NotificationRepository : INotificationRepository
         await _usersCollection.UpdateOneAsync(combinedFilter, update);
     }
 
-    public async Task DeleteNotificationFromUserAsync(Guid userId, Guid notificationId)
+    public async Task DeleteNotificationFromUserAsync(Guid id, Guid notificationId)
     {
-        var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+        var filter = Builders<User>.Filter.Eq(u => u.Id, id);
         var update = Builders<User>.Update.PullFilter(u => u.Notifications, n => n.Id == notificationId);
         await _usersCollection.UpdateOneAsync(filter, update);
     }

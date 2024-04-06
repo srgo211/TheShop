@@ -1,11 +1,12 @@
 ﻿using NotificationServiceAPI.DTO;
+using System;
 
 namespace NotificationServiceAPI.Interfaces;
 
 public interface INotificationRepository
 {
-    Task AddNotificationToUserAsync(Guid userId, Notification notification);
-    Task AddNotificationsToUserAsync(Guid userId, List<Notification> notifications);
-    Task UpdateUserNotificationAsync(Guid userId, Notification notification);
-    Task DeleteNotificationFromUserAsync(Guid userId, Guid notificationId);
+    Task AddNotificationToUserAsync(Guid id, Notification notification);
+    Task AddNotificationsToUserAsync(Guid id, List<Notification> notifications);
+    Task UpdateUserNotificationAsync(Guid id, Notification notification);
+    Task DeleteNotificationFromUserAsync(Guid id, Guid notificationId);
 }
