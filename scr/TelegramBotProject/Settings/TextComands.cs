@@ -2,7 +2,8 @@
 
 public static class TextComands
 {
-    public const string menu = "/start";
+    public const string start = "/start";
+    public const string menu = "/menu";
     public const string productСatalog = "Каталог товаров";
     public const string subscribe   = "Подписаться на рассылку";
     public const string unsubscribe = "Отписаться на рассылку";

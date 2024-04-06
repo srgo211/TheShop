@@ -1,14 +1,17 @@
-﻿using Microsoft.Extensions.Options;
-using Telegram.Bot.Types;
-using TelegramBotProject.Interfaces;
+﻿using TelegramBotProject.Interfaces;
 
 namespace TelegramBotProject.BusinessLogic;
 
-public class CallbackQuerysService :  Base
+public class CallbackQuerysService
 {
-    public CallbackQuerysService(ITelegramBotClient bot, IHttpClientService httpClient, ILogger<HandleUpdateService> logger, IOptions<BotConfiguration> botConfig, CommandSwitchController commandSwitchController, CallbackQuerysService callbackQuerysService) 
-        : base(bot, httpClient, logger, botConfig, commandSwitchController, callbackQuerysService)
+    protected readonly CallbackQuerysService callbackQuerysService;
+    protected readonly CommandSwitchController commandSwitchController;
+   
+
+    public CallbackQuerysService(CallbackQuerysService callbackQuerysService)
     {
+        this.callbackQuerysService = callbackQuerysService;
+       
     }
 
     internal async Task BotOnCallbackQueryReceived(CallbackQuery callbackQuery)
@@ -21,48 +24,34 @@ public class CallbackQuerysService :  Base
 
         if (commandStatuses.Subscription == TypeStatusCommand.Wait)
         {
-            Task<Message>? msg = NotificationSubscription(message);
+            //Task<Message>? msg = NotificationSubscription(message);
             return;
         }
 
 
         switch (callback)
         {
-            case TextComands.subscribe: break;
-            case TextComands.unsubscribe: break;
+            case TextComands.subscribe:
+               // Task<Message>? msg = NotificationSubscription(message);
+
+                break;
+            case TextComands.unsubscribe:
+                //await bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Вы отписались от уведомлений");
+                if (commandSwitchController.UserCommandStatuses.TryGetValue(userId, out var value))
+                {
+                    var newModel = new CommandStatuses(value.Subscription = TypeStatusCommand.Disable);
+                    bool updateSuccess = commandSwitchController.UserCommandStatuses.TryUpdate(userId, newModel, value);
+                }
+
+
+                break;
         }
 
-        var loginUrl = new LoginUrl
-        {
-            Url = "https://yourdomain.com/login?bot_id=YOUR_BOT_ID&request_access=email", // Your login URL
-            ForwardText = "Login to share your email",
-            BotUsername = "your_bot_username", // Without @
-            RequestWriteAccess = true
-        };
+       
 
-        var inlineKeyboard = new InlineKeyboardMarkup(new[]
-        {
-            InlineKeyboardButton.WithLoginUrl("Share Email", loginUrl)
-        });
+        
 
 
-        // Идентификатор чата
-        var chatId = callbackQuery.Message?.Chat.Id;
-
-        // Идентификатор сообщения
-        var messageId = callbackQuery.Message.MessageId;
-
-
-
-        // Отправка уведомления пользователю, который совершил CallbackQuery
-        await bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Вы выбрали: {callback}");
-
-
-
-        await bot.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Please share your email with us:"
-        );
     }
 
     

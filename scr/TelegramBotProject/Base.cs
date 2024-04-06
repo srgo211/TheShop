@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using System.Reflection;
 using TelegramBotProject.BusinessLogic;
 using TelegramBotProject.Interfaces;
 
@@ -8,27 +6,24 @@ namespace TelegramBotProject;
 
 public class Base
 {
-    protected readonly BotConfiguration botConfig;
-    protected readonly ITelegramBotClient bot;
-    protected readonly ILogger<HandleUpdateService> logger;
-    protected readonly IHttpClientService httpClient;
-    protected readonly CommandSwitchController commandSwitchController;
-    protected readonly CallbackQuerysService callbackQuerysService;
+    internal readonly BotConfiguration botConfig;
+    internal readonly ITelegramBotClient bot;
+    internal readonly IHttpClientService httpClient;
+    internal readonly CommandSwitchController commandSwitchController;
+    
 
     public Base(
         ITelegramBotClient bot, 
         IHttpClientService httpClient,
-        ILogger<HandleUpdateService> logger, 
         IOptions<BotConfiguration> botConfig,
-        CommandSwitchController commandSwitchController,
-        CallbackQuerysService callbackQuerysService)
+        CommandSwitchController commandSwitchController
+        )
     {
         this.bot = bot;
-        this.logger = logger;
         this.httpClient = httpClient;
         this.botConfig = botConfig.Value;
         this.commandSwitchController = commandSwitchController;
-        this.callbackQuerysService = callbackQuerysService;
+       
 
     }
 

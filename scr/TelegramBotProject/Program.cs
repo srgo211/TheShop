@@ -25,6 +25,8 @@ builder.Services.AddHttpClient<IHttpClientService, HttpClientService>();
 builder.Services.AddSingleton<BotConfiguration>();
 builder.Services.AddSingleton<CommandSwitchController>();
 
+//builder.Services.AddScoped<TelegramServices>();
+
 builder.Services.AddScoped<HandleUpdateService>();
 builder.Services.AddScoped<CallbackQuerysService>();
 

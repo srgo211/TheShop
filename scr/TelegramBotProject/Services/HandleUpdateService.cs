@@ -7,12 +7,22 @@ namespace TelegramBotProject.Services;
 
 public class HandleUpdateService : Base
 {
-    public HandleUpdateService(ITelegramBotClient bot, IHttpClientService httpClient, ILogger<HandleUpdateService> logger, IOptions<BotConfiguration> botConfig, CommandSwitchController commandSwitchController, CallbackQuerysService callbackQuerysService) : base(bot, httpClient, logger, botConfig, commandSwitchController, callbackQuerysService)
+    protected readonly ILogger<HandleUpdateService> logger;
+    protected readonly CallbackQuerysService callbackQuerysService;
+
+    public HandleUpdateService(ITelegramBotClient bot, IHttpClientService httpClient,
+        ILogger<HandleUpdateService> logger, IOptions<BotConfiguration> botConfig,
+        CommandSwitchController commandSwitchController, CallbackQuerysService callbackQuerysService)
+        : base(bot, httpClient, botConfig, commandSwitchController)
     {
+        this.logger = logger;
     }
 
     public async Task UpdateMessageAsync(Update update)
     {
+
+
+
         var handler = update.Type switch
         {
             // UpdateType.Unknown:
@@ -21,10 +31,10 @@ public class HandleUpdateService : Base
             // UpdateType.ShippingQuery:
             // UpdateType.PreCheckoutQuery:
             // UpdateType.Poll:
-            UpdateType.Message            => BotOnMessageReceived(update.Message!),
-            UpdateType.EditedMessage      => BotOnMessageReceived(update.EditedMessage!),
-            UpdateType.CallbackQuery      => callbackQuerysService.BotOnCallbackQueryReceived(update.CallbackQuery!),//BotOnCallbackQueryReceived(update.CallbackQuery!),
-            UpdateType.InlineQuery        => BotOnInlineQueryReceived(update.InlineQuery!),
+            UpdateType.Message => BotOnMessageReceived(update.Message!),
+            UpdateType.EditedMessage => BotOnMessageReceived(update.EditedMessage!),
+            UpdateType.CallbackQuery => BotOnCallbackQueryReceived(update.CallbackQuery!),
+            UpdateType.InlineQuery => BotOnInlineQueryReceived(update.InlineQuery!),
             UpdateType.ChosenInlineResult => BotOnChosenInlineResultReceived(update.ChosenInlineResult!),
             _ => UnknownUpdateHandlerAsync(update)
         };
@@ -46,7 +56,8 @@ public class HandleUpdateService : Base
             return;
 
         long userId = message.Contact?.UserId ?? default;
-        ICommandStatuses? commandStatuses = commandSwitchController.UserCommandStatuses.GetOrAdd(userId, new CommandStatuses());
+        ICommandStatuses? commandStatuses =
+            commandSwitchController.UserCommandStatuses.GetOrAdd(userId, new CommandStatuses());
 
         if (commandStatuses.Subscription == TypeStatusCommand.Wait)
         {
@@ -58,6 +69,7 @@ public class HandleUpdateService : Base
 
         Task<Message>? action = message.Text?.Trim() switch
         {
+            TextComands.start => Start(message),
             TextComands.menu => MenuStore(message),
             TextComands.productСatalog => ProductСatalog(message),
             TextComands.AdminPanel => OtherMsg(message),
@@ -74,7 +86,7 @@ public class HandleUpdateService : Base
         Message sentMessage = await action;
         logger.LogInformation("The message was sent with id: {sentMessageId}", sentMessage.MessageId);
 
-    
+
         async Task<Message> SendInlineKeyboard(ITelegramBotClient bot, Message message)
         {
             await bot.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
@@ -89,24 +101,24 @@ public class HandleUpdateService : Base
             string text = @"Просмотр товара в категории: Подарки, книги, игры
                             Набор ""Geisha's Secret. Экзотический зеленый чай"" 5 предмето";
 
-          
+
 
 
             InlineKeyboardMarkup inlineKeyboard = new(
                 new[]
                 {
                     // first row
-                    new []
+                    new[]
                     {
                         InlineKeyboardButton.WithCallbackData(TextComands.prevProductBtn, TextComands.prevProductBtn),
                         InlineKeyboardButton.WithCallbackData("3 из 10", ""),
                         InlineKeyboardButton.WithCallbackData(TextComands.nextProductBtn, TextComands.nextProductBtn),
-                        
+
                     },
                     // second row
-                    new []
+                    new[]
                     {
-                        InlineKeyboardButton.WithCallbackData(TextComands.backBtn,TextComands.backBtn),
+                        InlineKeyboardButton.WithCallbackData(TextComands.backBtn, TextComands.backBtn),
                         InlineKeyboardButton.WithCallbackData(TextComands.addOrderBtn, TextComands.addOrderBtn),
                     },
                 });
@@ -120,8 +132,8 @@ public class HandleUpdateService : Base
 
 
             return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: "Choose",
-                                                  replyMarkup: inlineKeyboard);
+                text: "Choose",
+                replyMarkup: inlineKeyboard);
         }
 
         static async Task<Message> SendReplyKeyboard(ITelegramBotClient bot, Message message)
@@ -129,23 +141,23 @@ public class HandleUpdateService : Base
             ReplyKeyboardMarkup replyKeyboardMarkup = new(
                 new[]
                 {
-                        new KeyboardButton[] { "1.1", "1.2" },
-                        new KeyboardButton[] { "2.1", "2.2" },
+                    new KeyboardButton[] { "1.1", "1.2" },
+                    new KeyboardButton[] { "2.1", "2.2" },
                 })
             {
                 ResizeKeyboard = true
             };
 
             return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: "Choose",
-                                                  replyMarkup: replyKeyboardMarkup);
+                text: "Choose",
+                replyMarkup: replyKeyboardMarkup);
         }
 
         static async Task<Message> RemoveKeyboard(ITelegramBotClient bot, Message message)
         {
             return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: "Removing keyboard",
-                                                  replyMarkup: new ReplyKeyboardRemove());
+                text: "Removing keyboard",
+                replyMarkup: new ReplyKeyboardRemove());
         }
 
         static async Task<Message> SendFile(ITelegramBotClient bot, Message message)
@@ -157,9 +169,9 @@ public class HandleUpdateService : Base
             string fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
 
             return await bot.SendPhotoAsync(chatId: message.Chat.Id,
-                                            photo: new InputFileStream(fileStream, fileName),
-                                            
-                                            caption: "Nice Picture");
+                photo: new InputFileStream(fileStream, fileName),
+
+                caption: "Nice Picture");
         }
 
         static async Task<Message> RequestContactAndLocation(ITelegramBotClient bot, Message message)
@@ -172,8 +184,8 @@ public class HandleUpdateService : Base
                 });
 
             return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: "Who or Where are you?",
-                                                  replyMarkup: RequestReplyKeyboard);
+                text: "Who or Where are you?",
+                replyMarkup: RequestReplyKeyboard);
         }
 
         static async Task<Message> Usage(ITelegramBotClient bot, Message message)
@@ -186,12 +198,12 @@ public class HandleUpdateService : Base
                                  "/request  - request location or contact";
 
             return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                  text: usage,
-                                                  replyMarkup: new ReplyKeyboardRemove());
+                text: usage,
+                replyMarkup: new ReplyKeyboardRemove());
         }
     }
 
-    private async Task<Message>? NotificationSubscription(Message message)
+    internal async Task<Message>? NotificationSubscription(Message message)
     {
         throw new NotImplementedException();
     }
@@ -202,7 +214,7 @@ public class HandleUpdateService : Base
         var response = await httpClient.GetAsync(url);
         if (response.IsSuccessStatusCode)
         {
-            
+
             string content = await response.Content.ReadAsStringAsync();
             logger.LogInformation(content);
         }
@@ -210,49 +222,7 @@ public class HandleUpdateService : Base
         return message;
     }
 
-    private async Task BotOnCallbackQueryReceived(CallbackQuery callbackQuery)
-    {
-        string callback = callbackQuery?.Data;
 
-
-        switch (callback)
-        {
-            case TextComands.subscribe:   break;
-            case TextComands.unsubscribe: break;
-        }
-
-        var loginUrl = new LoginUrl
-        {
-            Url = "https://yourdomain.com/login?bot_id=YOUR_BOT_ID&request_access=email", // Your login URL
-            ForwardText = "Login to share your email",
-            BotUsername = "your_bot_username", // Without @
-            RequestWriteAccess = true
-        };
-
-        var inlineKeyboard = new InlineKeyboardMarkup(new[]
-        {
-            InlineKeyboardButton.WithLoginUrl("Share Email", loginUrl)
-        });
-
-
-        // Идентификатор чата
-        var chatId = callbackQuery.Message?.Chat.Id;
-
-        // Идентификатор сообщения
-        var messageId = callbackQuery.Message.MessageId;
-
-      
-        
-        // Отправка уведомления пользователю, который совершил CallbackQuery
-        await bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Вы выбрали: {callback}");
-
-
-
-        await bot.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Please share your email with us:"
-            );
-    }
 
     #region Inline Mode
 
@@ -260,7 +230,8 @@ public class HandleUpdateService : Base
     {
         logger.LogInformation("Received inline query from: {inlineQueryFromId}", inlineQuery.From.Id);
 
-        InlineQueryResult[] results = {
+        InlineQueryResult[] results =
+        {
             // displayed result
             new InlineQueryResultArticle(
                 id: "3",
@@ -272,9 +243,9 @@ public class HandleUpdateService : Base
         };
 
         await bot.AnswerInlineQueryAsync(inlineQueryId: inlineQuery.Id,
-                                                results: results,
-                                                isPersonal: true,
-                                                cacheTime: 0);
+            results: results,
+            isPersonal: true,
+            cacheTime: 0);
     }
 
     private Task BotOnChosenInlineResultReceived(ChosenInlineResult chosenInlineResult)
@@ -295,7 +266,8 @@ public class HandleUpdateService : Base
     {
         var ErrorMessage = exception switch
         {
-            ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+            ApiRequestException apiRequestException =>
+                $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
             _ => exception.ToString()
         };
 
@@ -305,7 +277,7 @@ public class HandleUpdateService : Base
 
 
 
-    
+
 
 
     async Task<Message> OtherMsg(Message message)
@@ -317,13 +289,13 @@ public class HandleUpdateService : Base
         string text = "Нам пока не нужны эти данные! Спасибо!\n" + link;
 
         text = "<b>Просмотр товара в категории: <u>Подарки, книги, игры</u></b>\n\n" +
-               "<s>strikethrough</s>"+
+               "<s>strikethrough</s>" +
                "Фанты-флирт №8 Бутылочка\n\n" +
                "<b>Описание:</b><code>Фанты «Бутылочка» — это игра-флирт для компании до десяти человек. Здесь не надо крутить бутылочку, зато можно здорово оторваться на горячей вечеринке или получить массу новых ощущений в отпуске или в дороге.</code>\n" +
-               $"<b>Цена:</b> 620.00 | шт<a href=\"{url}\">.</a>"; 
+               $"<b>Цена:</b> 620.00 | шт<a href=\"{url}\">.</a>";
 
         return await bot.SendTextMessageAsync(chatId: message.Chat.Id, text: text, parseMode: ParseMode.Html,
-            disableWebPagePreview:false);
+            disableWebPagePreview: false);
     }
 
     async Task<Message> SendPhotoAsync(Message message, string photoPath)
@@ -334,7 +306,7 @@ public class HandleUpdateService : Base
             new[]
             {
                 // first row
-                new []
+                new[]
                 {
                     InlineKeyboardButton.WithCallbackData(TextComands.prevProductBtn, TextComands.prevProductBtn),
                     InlineKeyboardButton.WithCallbackData("3 из 10", ""),
@@ -342,9 +314,9 @@ public class HandleUpdateService : Base
 
                 },
                 // second row
-                new []
+                new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(TextComands.backBtn,TextComands.backBtn),
+                    InlineKeyboardButton.WithCallbackData(TextComands.backBtn, TextComands.backBtn),
                     InlineKeyboardButton.WithCallbackData(TextComands.addOrderBtn, TextComands.addOrderBtn),
                 },
             });
@@ -357,10 +329,10 @@ public class HandleUpdateService : Base
                 photo: new InputFileStream(fileStream, Path.GetFileName(photoPath)),
                 caption: "Here is your photo!",
                 replyMarkup: inlineKeyboard
-                
+
             );
 
-           
+
         }
 
     }
@@ -369,7 +341,7 @@ public class HandleUpdateService : Base
     {
         string botToken = "1039876475:AAE6yf_CXTgnyyo99Pa1y7FPgIgm3JRRFeg";
         string url = $"https://api.telegram.org/bot{botToken}/sendPhoto";
-        
+
         //string photoUrl = "https://disk.yandex.ru/i/9hfkr-gp4YWcKQ";
         string photoUrl = "http://localhost:8080/img/1.jpg";
 
@@ -388,7 +360,10 @@ public class HandleUpdateService : Base
             {
                 inline_keyboard = new[]
                 {
-                    new[] { new { text = "Button 1", callback_data = "1" }, new { text = "Button 2", callback_data = "2" } },
+                    new[]
+                    {
+                        new { text = "Button 1", callback_data = "1" }, new { text = "Button 2", callback_data = "2" }
+                    },
                     new[] { new { text = "Button 3", callback_data = "3" } }
                 }
             };
@@ -402,7 +377,8 @@ public class HandleUpdateService : Base
             // Check if the request was successful
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception($"Failed to send photo. Server responded with {response.StatusCode}: {responseString}");
+                throw new Exception(
+                    $"Failed to send photo. Server responded with {response.StatusCode}: {responseString}");
             }
 
             Console.WriteLine("Photo sent successfully.");
@@ -411,26 +387,6 @@ public class HandleUpdateService : Base
 
 
         return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         /*
 
         using (var httpClient = new HttpClient())
@@ -460,6 +416,71 @@ public class HandleUpdateService : Base
 
         return;
         */
+    }
+
+
+
+    protected async Task<Message> Start(Message message)
+    {
+
+        string url = $"{botConfig.HostFilesAddress}/img/logo.jpg";
+        string text = $"Добро пожаловать в интернет-магазин<a href=\"{url}\">!</a>";
+
+
+        InlineKeyboardMarkup keyboard = new(
+            new[]
+            {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(TextComands.subscribe, TextComands.subscribe),
+                    InlineKeyboardButton.WithCallbackData(TextComands.unsubscribe, TextComands.unsubscribe),
+
+                },
+            });
+
+
+        return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: text,
+            parseMode: ParseMode.Html,
+            replyMarkup: keyboard,
+            disableWebPagePreview: false
+        );
+    }
+
+
+    internal async Task BotOnCallbackQueryReceived(CallbackQuery callbackQuery)
+    {
+        string callback = callbackQuery?.Data;
+        var message = callbackQuery.Message;
+
+        long userId = message.Contact?.UserId ?? default;
+        ICommandStatuses? commandStatuses =
+            commandSwitchController.UserCommandStatuses.GetOrAdd(userId, new CommandStatuses());
+
+        if (commandStatuses.Subscription == TypeStatusCommand.Wait)
+        {
+            //Task<Message>? msg = NotificationSubscription(message);
+            return;
+        }
+
+
+        switch (callback)
+        {
+            case TextComands.subscribe:
+                // Task<Message>? msg = NotificationSubscription(message);
+
+                break;
+            case TextComands.unsubscribe:
+                //await bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Вы отписались от уведомлений");
+                if (commandSwitchController.UserCommandStatuses.TryGetValue(userId, out var value))
+                {
+                    var newModel = new CommandStatuses(value.Subscription = TypeStatusCommand.Disable);
+                    bool updateSuccess = commandSwitchController.UserCommandStatuses.TryUpdate(userId, newModel, value);
+                }
+
+
+                break;
+        }
     }
 }
 
