@@ -153,7 +153,7 @@ public class BaseService
 
         var product = await GetProduct(page, itemsPerPage);
 
-        string url = $"{botConfig.HostFilesAddress}/img/{product.Images.FirstOrDefault()}";
+        string url = $"{botConfig.HostFilesAddress}/img/{product.Images.FirstOrDefault()?.Name}";
         string link = $"<a href=\"{url}\">link</a>";
 
         int productId                 = product.Id;
