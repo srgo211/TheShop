@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using System.Diagnostics;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using NotificationServiceAPI.DTO;
 using NotificationServiceAPI.Interfaces;
@@ -93,4 +94,62 @@ public class NotificationRepository : INotificationRepository
         return await _usersCollection.Aggregate<User>(pipeline).ToListAsync();
     }
 
+    public async Task<IEnumerable<User>> GetUsersNotificationsByStatusAndSendDateAsync(
+        NotificationStatus notificationStatus,
+        SubscriptionStatus subscriptionStatus,
+        DateTime sendDate)
+    {
+        var filterDate = sendDate.Date; // Assuming you want to filter by date without time part
+
+        var pipeline = new BsonDocument[]
+        {
+            new BsonDocument("$match",
+                new BsonDocument("Status", (int)subscriptionStatus)
+            ),
+            new BsonDocument("$addFields",
+                new BsonDocument("Notifications",
+                    new BsonDocument("$filter",
+                        new BsonDocument
+                        {
+                            { "input", "$Notifications" },
+                            { "as", "notification" },
+                            { "cond", new BsonDocument("$and", new BsonArray
+                                {
+                                    new BsonDocument("$eq", new BsonArray { "$$notification.Status", (int)notificationStatus }),
+                                    new BsonDocument("$eq", new BsonArray { "$$notification.SendDate", new BsonDateTime(filterDate) })
+                                })
+                            }
+                        })
+                )
+            )
+        };
+
+        return await _usersCollection.Aggregate<User>(pipeline).ToListAsync();
+    }
+
+
+    public async Task<bool> UpdateNotificationAsync(Guid notificationId, Notification updatedNotification)
+    {
+        var userFilter = Builders<User>.Filter.ElemMatch(u => u.Notifications, n => n.Id == notificationId);
+        var updateDefinition = Builders<User>.Update
+            .Set("Notifications.$.Message", updatedNotification.Message)
+            .Set("Notifications.$.SendDate", updatedNotification.SendDate)
+            .Set("Notifications.$.Status", updatedNotification.Status);
+
+
+
+        UpdateResult? updateResult = default;
+        try
+        {
+            updateResult = await _usersCollection.UpdateOneAsync(userFilter, updateDefinition);
+
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+            throw;
+        }
+
+        return updateResult.ModifiedCount == 1;
+    }
 }

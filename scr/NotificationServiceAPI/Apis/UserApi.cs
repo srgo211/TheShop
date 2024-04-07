@@ -15,12 +15,18 @@ public class UserApi : IApi
             return Results.Created($"/getUser/{user.Id}", user);
         });
 
+        app.MapGet(endpoint + "/getUsers", async (IUserRepository userRepository) =>
+        {
+            var users = await userRepository.GetAllUsersAsync();
+            return users != null ? Results.Ok(users) : Results.NotFound();
+        });
 
         app.MapGet(endpoint + "/getUser", async (Guid id, IUserRepository userRepository) =>
         {
             var user = await userRepository.GetUserByIdAsync(id);
             return user != null ? Results.Ok(user) : Results.NotFound();
         });
+
 
         app.MapGet($"{endpoint}/getEmail", async (string email, IUserRepository userRepository) =>
         {

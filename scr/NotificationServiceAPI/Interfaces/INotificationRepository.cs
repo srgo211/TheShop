@@ -13,4 +13,11 @@ public interface INotificationRepository
     Task<IEnumerable<User>> GetAllUsersWithNotificationsByStatusAsync(NotificationStatus status);
 
     Task<IEnumerable<User>> GetUsersAndNotificationsByStatusAsync(NotificationStatus notificationStatus, SubscriptionStatus subscriptionStatus);
+
+    Task<IEnumerable<User>> GetUsersNotificationsByStatusAndSendDateAsync(
+        NotificationStatus notificationStatus,
+        SubscriptionStatus subscriptionStatus,
+        DateTime sendDate);
+
+    Task<bool> UpdateNotificationAsync(Guid notificationId, Notification updatedNotification);
 }
