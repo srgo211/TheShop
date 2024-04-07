@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using NotificationServiceAPI.DTO;
 using NotificationServiceAPI.Interfaces;
 
@@ -43,4 +44,53 @@ public class NotificationRepository : INotificationRepository
         var update = Builders<User>.Update.PullFilter(u => u.Notifications, n => n.Id == notificationId);
         await _usersCollection.UpdateOneAsync(filter, update);
     }
+
+
+
+    public async Task<IEnumerable<User>> GetAllUsersWithNotificationsByStatusAsync(NotificationStatus status)
+    {
+
+
+        var pipeline = new BsonDocument[]
+        {
+            new BsonDocument("$addFields", new BsonDocument
+            {
+                {
+                    "Notifications", new BsonDocument("$filter", new BsonDocument
+                    {
+                        { "input", "$Notifications" },
+                        { "as", "notification" },
+                        { "cond", new BsonDocument("$eq", new BsonArray { "$$notification.Status", (int)status }) }
+                    })
+                }
+            })
+        };
+
+        var usersWithFilteredNotifications = await _usersCollection.Aggregate<User>(pipeline).ToListAsync();
+
+        return usersWithFilteredNotifications;
+
+    }
+
+    public async Task<IEnumerable<User>> GetUsersAndNotificationsByStatusAsync(NotificationStatus notificationStatus, SubscriptionStatus subscriptionStatus)
+    {
+        var pipeline = new BsonDocument[]
+        {
+            new BsonDocument("$match", new BsonDocument("Status", (int)subscriptionStatus)),
+            new BsonDocument("$addFields", new BsonDocument
+            {
+                {
+                    "Notifications", new BsonDocument("$filter", new BsonDocument
+                    {
+                        { "input", "$Notifications" },
+                        { "as", "notification" },
+                        { "cond", new BsonDocument("$eq", new BsonArray { "$$notification.Status", (int)notificationStatus }) }
+                    })
+                }
+            })
+        };
+
+        return await _usersCollection.Aggregate<User>(pipeline).ToListAsync();
+    }
+
 }

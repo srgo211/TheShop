@@ -9,4 +9,8 @@ public interface INotificationRepository
     Task AddNotificationsToUserAsync(Guid id, List<Notification> notifications);
     Task UpdateUserNotificationAsync(Guid id, Notification notification);
     Task DeleteNotificationFromUserAsync(Guid id, Guid notificationId);
+
+    Task<IEnumerable<User>> GetAllUsersWithNotificationsByStatusAsync(NotificationStatus status);
+
+    Task<IEnumerable<User>> GetUsersAndNotificationsByStatusAsync(NotificationStatus notificationStatus, SubscriptionStatus subscriptionStatus);
 }

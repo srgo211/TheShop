@@ -20,5 +20,17 @@ public class NotificationApi : IApi
             await notificationRepository.DeleteNotificationFromUserAsync(id, notificationId);
             return Results.NoContent();
         });
+
+        app.MapGet("/notifications/{status}", async (NotificationStatus status, INotificationRepository notificationRepository) =>
+        {
+            var users = await notificationRepository.GetAllUsersWithNotificationsByStatusAsync(status);
+            return Results.Ok(users);
+        });
+
+        app.MapGet("/notifications/filtered", async (NotificationStatus notificationStatus, SubscriptionStatus subscriptionStatus, INotificationRepository notificationRepository) =>
+        {
+            var users = await notificationRepository.GetUsersAndNotificationsByStatusAsync(notificationStatus, subscriptionStatus);
+            return Results.Ok(users);
+        });
     }
 }
