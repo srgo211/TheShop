@@ -1,68 +1,16 @@
-
-
-using Microsoft.Extensions.Configuration;
-using TelegramBotProject.BusinessLogic;
+using Microsoft.Extensions.FileProviders;
 using TelegramBotProject.Interfaces;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-//BotConfiguration botConfig = builder.Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
+var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Старт приложения TelegramBot");
 
-
-IConfigurationSection configurationSection = builder.Configuration.GetSection("BotConfiguration");
-BotConfiguration? botConfiguration = configurationSection.Get<BotConfiguration>();
-string botToken = botConfiguration.BotToken ?? string.Empty;
-builder.Services.Configure<BotConfiguration>(configurationSection);
-
-
-builder.Services.AddHostedService<ConfigureWebhook>();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddHttpClient();
-
-//builder.Services.AddHttpClient("TelegramWebhook").AddTypedClient<ITelegramBotClient>(httpClient => new TelegramBotClient(botToken, httpClient));
-//builder.Services.AddHttpClient<IHttpClientService, HttpClientService>();
-//builder.Services.AddSingleton<BotConfiguration>();
-//builder.Services.AddSingleton<CommandSwitchController>();
-//builder.Services.AddScoped<HandleUpdateService>();
-//builder.Services.AddScoped<CallbackQuerysService>();
-
-
-
-// Add services to the DI container.
-builder.Services.AddSingleton<BotConfiguration>(botConfiguration);
-
-
-builder.Services.AddSingleton<CommandSwitchController>();
-builder.Services.AddSingleton<BaseService>();
-builder.Services.AddSingleton<ITelegramBotClient>(sp => new TelegramBotClient(botToken));
-
-
-
-builder.Services.AddScoped<IHttpClientService, HttpClientService>();
-
-builder.Services.AddTransient<ICommandHandler, CommandHandler>();
-builder.Services.AddTransient<ICallbackQueryService, CallbackQueryService>();
-builder.Services.AddTransient<IMessageService, MessageService>();
-builder.Services.AddTransient<HandleUpdateService>();
-
-
-
-
-
-
+RegisterServices(builder.Services);
 WebApplication app = builder.Build();
+ConfigureApplication(app);
 
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-app.UseHttpLogging();
 
 app.MapPost($"/getUpdates", async (
         ITelegramBotClient botClient,
@@ -70,7 +18,7 @@ app.MapPost($"/getUpdates", async (
         HandleUpdateService handleUpdateService,
         NewtonsoftJsonUpdate update) =>
         {
-
+            logger.LogInformation("Обновление от Webhook");
             if (update is null)
             {
                 throw new ArgumentException(nameof(update));
@@ -81,3 +29,85 @@ app.MapPost($"/getUpdates", async (
         }).WithName("TelegramWebhook");
 
 app.Run();
+
+
+
+
+void ConfigureApplication(WebApplication app)
+{
+    logger.LogInformation("Конфигурация приложения");
+
+    // Настройка статических файлов
+    app.UseStaticFiles();
+
+    var pathStatic = Path.Combine(Directory.GetCurrentDirectory(), "img");
+    logger.LogInformation($"Файлы: {pathStatic}");
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(pathStatic),
+        RequestPath = "/img"
+    });
+
+
+
+    // Applying middleware
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.UseHttpsRedirection();
+    app.UseHttpLogging();
+
+
+    IConfiguration configuration = app.Configuration;
+
+    // Получение значений URL и порта из конфигурации
+    string url = configuration.GetValue<string>("AppSettings:Url") ?? "http://localhost";
+    int port = configuration.GetValue<int?>("AppSettings:Port")    ?? 5000;
+
+    string baseUrl = $"{url}:{port}";
+    logger.LogInformation($"Запуск приложения на:{baseUrl}");
+    app.Urls.Add(baseUrl);
+}
+
+void RegisterServices(IServiceCollection services)
+{
+    logger.LogInformation("Регистрация сервисов");
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen(opt =>
+    {
+        opt.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Telegram Bot", Version = "v1" });
+        
+    });
+
+    IConfigurationSection configurationSection = builder.Configuration.GetSection("BotConfiguration");
+    BotConfiguration? botConfiguration = configurationSection.Get<BotConfiguration>();
+    string botToken = botConfiguration.BotToken ?? string.Empty;
+    builder.Services.Configure<BotConfiguration>(configurationSection);
+
+
+    builder.Services.AddHostedService<ConfigureWebhook>();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    builder.Services.AddHttpClient();
+
+
+
+    // Add services to the DI container.
+    builder.Services.AddSingleton<BotConfiguration>(botConfiguration);
+
+
+    builder.Services.AddSingleton<CommandSwitchController>();
+    builder.Services.AddSingleton<BaseService>();
+    builder.Services.AddSingleton<ITelegramBotClient>(sp => new TelegramBotClient(botToken));
+
+
+
+    builder.Services.AddScoped<IHttpClientService, HttpClientService>();
+
+    builder.Services.AddTransient<ICommandHandler, CommandHandler>();
+    builder.Services.AddTransient<ICallbackQueryService, CallbackQueryService>();
+    builder.Services.AddTransient<IMessageService, MessageService>();
+    builder.Services.AddTransient<HandleUpdateService>();
+
+
+}

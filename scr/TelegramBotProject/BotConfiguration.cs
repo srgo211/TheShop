@@ -7,7 +7,8 @@ public class BotConfiguration
     // Open API is unable to process urls with ":" symbol
     public string? EscapedBotToken => BotToken?.Replace(':', '_');
 
-    public string? HostAddress { get; init; }
+    public string? WebhookAddress { get; init; }
     public string? HostFilesAddress { get; init; }
     public string? HostAddressCatalogProduct { get; init; }
+    public string? NotificationService   { get; init; }
 }

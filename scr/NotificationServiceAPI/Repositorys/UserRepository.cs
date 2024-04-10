@@ -11,6 +11,13 @@ public class UserRepository : IUserRepository
     public UserRepository(IMongoClient mongoClient, string databaseName)
     {
         _usersCollection = mongoClient.GetDatabase(databaseName).GetCollection<User>("Users");
+
+
+        if (mongoClient == null) throw new ArgumentNullException(nameof(mongoClient));
+        if (string.IsNullOrEmpty(databaseName)) throw new ArgumentException("Message", nameof(databaseName));
+
+        _usersCollection = mongoClient.GetDatabase(databaseName).GetCollection<User>("Users");
+
     }
 
     public async Task<User> CreateUserAsync(User user)

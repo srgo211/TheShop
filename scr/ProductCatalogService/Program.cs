@@ -1,30 +1,53 @@
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Create a logger early on
+var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Старт приложения ProductCatalogService");
 
 RegisterServices(builder.Services);
-
-var app = builder.Build();
-
-await Configure(app);
-
-var apis = app.Services.GetServices<IApi>();
-foreach (var api in apis)
-{
-    if (api is null) throw new InvalidProgramException("Api not found");
-    api.Register(app);
-}
+WebApplication app = builder.Build();
+ConfigureApplication(app);
 app.Run();
 
 
 async Task Configure(WebApplication app)
 {
-
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+    app.UseSwagger();
+    app.UseSwaggerUI();
     app.UseHttpsRedirection();
 }
+
+
+void ConfigureApplication(WebApplication app)
+{
+    logger.LogInformation("Конфигурация приложения");
+    // Applying middleware
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.UseHttpsRedirection();
+
+    // Register API routes
+    var apis = app.Services.GetServices<IApi>();
+    foreach (var api in apis)
+    {
+        if (api is null) throw new InvalidProgramException("Api not found");
+        api.Register(app);
+    }
+
+    IConfiguration configuration = app.Configuration;
+
+    // Получение значений URL и порта из конфигурации
+    string url = configuration.GetValue<string>("AppSettings:Url") ?? "http://localhost";
+    int port   = configuration.GetValue<int?>("AppSettings:Port") ?? 5001;
+
+    string baseUrl = $"{url}:{port}";
+    logger.LogInformation($"Запуск приложения на:{baseUrl}");
+    app.Urls.Add(baseUrl);
+}
+
+
+
+
 void RegisterServices(IServiceCollection services)
 {
     services.AddEndpointsApiExplorer();
