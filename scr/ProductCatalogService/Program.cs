@@ -1,4 +1,14 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+
+
+
+
 
 // Create a logger early on
 var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
@@ -26,6 +36,10 @@ void ConfigureApplication(WebApplication app)
     app.UseSwaggerUI();
     app.UseHttpsRedirection();
 
+    // Использование миддлвари аутентификации и авторизации
+    app.UseAuthentication();
+    app.UseAuthorization();
+
     // Register API routes
     var apis = app.Services.GetServices<IApi>();
     foreach (var api in apis)
@@ -42,6 +56,9 @@ void ConfigureApplication(WebApplication app)
 
     string baseUrl = $"{url}:{port}";
     logger.LogInformation($"Запуск приложения на:{baseUrl}");
+
+    
+
     app.Urls.Add(baseUrl);
 }
 
@@ -56,6 +73,22 @@ void RegisterServices(IServiceCollection services)
         opt.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Каталог товаров", Version = "v1" });
         opt.DocumentFilter<TagsOrderFilter>();
     });
+
+
+    var secretKey = builder.Configuration.GetConnectionString("JwtKey");
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                ValidateIssuer = false,
+                ValidateAudience = false
+            };
+        });
+
+    builder.Services.AddAuthorization();
 
 
     services.AddDbContext<AppDbContext>(options =>

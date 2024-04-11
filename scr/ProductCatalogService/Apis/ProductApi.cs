@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.Net.Http;
 
 namespace ProductCatalogService.Apis;
 
@@ -37,7 +38,7 @@ public class ProductApi : IApi
 
 
 
-        app.MapDelete($"{endpoint}/delete", (int id, bool isAdmin,IProductRepository repository) => Delete(id, isAdmin, repository))
+        app.MapDelete($"{endpoint}/delete",Delete)
            .WithMetadata(new HttpMethodMetadata(new[] { "DELETE" }))
            .WithTags("Delete");
 
@@ -57,8 +58,9 @@ public class ProductApi : IApi
     }
 
    
-    private async Task<IResult> Update(int idProduct, bool isAdmin, [FromBody] Product product, IProductRepository repository)
+    private async Task<IResult> Update(HttpContext httpContext, int idProduct,  [FromBody] Product product, IProductRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
 
         bool check = await repository.UpdateAsync(idProduct, product,true);
@@ -66,8 +68,9 @@ public class ProductApi : IApi
         else return Results.NotFound();
        
     }   
-    private async Task<IResult> Delete(int id, bool isAdmin, IProductRepository repository)
+    private async Task<IResult> Delete(HttpContext httpContext, int id, IProductRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
 
         bool checkDelete = await repository.DeleteProductAsync(id, isAdmin);
@@ -90,9 +93,12 @@ public class ProductApi : IApi
     }
 
 
-    private async Task<IResult> AddProduct([FromBody] Product product, bool isAdmin, IProductRepository repository)
+    private async Task<IResult> AddProduct(HttpContext httpContext, Product product, IProductRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
+       
+
         await repository.AddProductAsync(product, isAdmin);
         //return Results.Ok($"Добавили новый продукт");
         return Results.Created($"/hotels/{product.Id}", product);

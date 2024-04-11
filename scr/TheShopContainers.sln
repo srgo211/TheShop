@@ -27,7 +27,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Telegram", "Telegram", "{77
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelegramBotProject", "TelegramBotProject\TelegramBotProject.csproj", "{3A730BF7-5127-44FF-8307-E0DD7D78B9F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationServiceAPI", "NotificationServiceAPI\NotificationServiceAPI.csproj", "{9E1E9130-B6B5-4A70-B5B0-827C42679625}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NotificationServiceAPI", "NotificationServiceAPI\NotificationServiceAPI.csproj", "{9E1E9130-B6B5-4A70-B5B0-827C42679625}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{B8CAA584-EA2E-4A02-AE9E-B456E03EADD7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedDomainModels", "SharedDomainModels\SharedDomainModels.csproj", "{EF26DFC8-132D-41ED-8F51-C8F0A9E39BDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedInterfaces", "SharedInterfaces\SharedInterfaces.csproj", "{ED91F1CC-A739-4823-AA51-FB9BEFE25276}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +77,14 @@ Global
 		{9E1E9130-B6B5-4A70-B5B0-827C42679625}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E1E9130-B6B5-4A70-B5B0-827C42679625}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E1E9130-B6B5-4A70-B5B0-827C42679625}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF26DFC8-132D-41ED-8F51-C8F0A9E39BDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF26DFC8-132D-41ED-8F51-C8F0A9E39BDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF26DFC8-132D-41ED-8F51-C8F0A9E39BDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF26DFC8-132D-41ED-8F51-C8F0A9E39BDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED91F1CC-A739-4823-AA51-FB9BEFE25276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED91F1CC-A739-4823-AA51-FB9BEFE25276}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED91F1CC-A739-4823-AA51-FB9BEFE25276}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED91F1CC-A739-4823-AA51-FB9BEFE25276}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -85,6 +99,8 @@ Global
 		{F2624E1E-8547-42F0-BA12-F7F775B353CF} = {E9A2382F-CB9E-44D1-9343-1F4A37236C7A}
 		{3A730BF7-5127-44FF-8307-E0DD7D78B9F9} = {779F91A5-4776-4578-ABDE-5F5BB39F5B37}
 		{9E1E9130-B6B5-4A70-B5B0-827C42679625} = {E9A2382F-CB9E-44D1-9343-1F4A37236C7A}
+		{EF26DFC8-132D-41ED-8F51-C8F0A9E39BDA} = {B8CAA584-EA2E-4A02-AE9E-B456E03EADD7}
+		{ED91F1CC-A739-4823-AA51-FB9BEFE25276} = {B8CAA584-EA2E-4A02-AE9E-B456E03EADD7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {33345D89-1D7A-4C72-A89E-85BD9BDC80BD}

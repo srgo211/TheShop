@@ -1,4 +1,8 @@
-﻿namespace ProductCatalogService.Apis;
+﻿using Microsoft.AspNetCore.Http;
+using System.Net.Http;
+using Microsoft.AspNetCore.Authorization;
+
+namespace ProductCatalogService.Apis;
 
 public class CategorieApi : IApi
 {
@@ -24,7 +28,7 @@ public class CategorieApi : IApi
             .WithTags("Update");
 
 
-        app.MapDelete($"{endpoint}/delete", (int id, bool isAdmin, ICategorieRepository repository) => Delete(id, isAdmin, repository))
+        app.MapDelete($"{endpoint}/delete", (HttpContext httpContext, int id,  ICategorieRepository repository) => Delete(httpContext, id,  repository))
             .WithMetadata(new HttpMethodMetadata(new[] { "DELETE" }))
             .WithName("DeleteCategorie")
             .WithTags("Delete");
@@ -32,8 +36,9 @@ public class CategorieApi : IApi
 
     }
 
-    private async Task<IResult> AddCategorie([FromBody] Categorie data, bool isAdmin, ICategorieRepository repository)
+    private async Task<IResult> AddCategorie(HttpContext httpContext, [FromBody] Categorie data, ICategorieRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
 
         await repository.AddCategorieAsync(data, isAdmin);
@@ -47,8 +52,9 @@ public class CategorieApi : IApi
         ? Results.Ok(data)
         : Results.NotFound();
 
-    private async Task<IResult> Delete(int id, bool isAdmin, ICategorieRepository repository)
+    private async Task<IResult> Delete(HttpContext httpContext, int id, ICategorieRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
 
         bool checkDelete = await repository.DeleteCategorieAsync(id, isAdmin);
@@ -56,8 +62,9 @@ public class CategorieApi : IApi
         else return Results.NotFound();
     }
 
-    private async Task<IResult> Update(int idCategorie, bool isAdmin,[FromBody] Categorie data, ICategorieRepository repository)
+    private async Task<IResult> Update(HttpContext httpContext, int idCategorie, [FromBody] Categorie data, ICategorieRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
 
         bool check = await repository.UpdateAsync(idCategorie, data, isAdmin);

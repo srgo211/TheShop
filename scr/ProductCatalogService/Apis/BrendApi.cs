@@ -1,4 +1,7 @@
-﻿namespace ProductCatalogService.Apis;
+﻿using Microsoft.AspNetCore.Http;
+using System.Net.Http;
+
+namespace ProductCatalogService.Apis;
 
 public class BrendApi : IApi
 {
@@ -24,7 +27,7 @@ public class BrendApi : IApi
              .WithName("UpdateBrand")
              .WithTags("Update");
 
-         app.MapDelete($"{endpoint}/delete", (int id, bool isAdmin, IBrendRepository repository) => Delete(id, isAdmin, repository))
+         app.MapDelete($"{endpoint}/delete", (HttpContext httpContext, int id,  IBrendRepository repository) => Delete(httpContext, id,  repository))
              .WithMetadata(new HttpMethodMetadata(new[] { "DELETE" }))
              .WithName("DeleteBrand")
              .WithTags("Delete");
@@ -38,8 +41,9 @@ public class BrendApi : IApi
         ? Results.Ok(products)
         : Results.NotFound();
 
-    private async Task<IResult> Delete(int id, bool isAdmin, IBrendRepository repository)
+    private async Task<IResult> Delete(HttpContext httpContext, int id, IBrendRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
 
         bool checkDelete = await repository.DeleteBrendAsync(id, isAdmin);
@@ -47,8 +51,9 @@ public class BrendApi : IApi
         else return Results.NotFound();
     }
 
-    private async Task<IResult> Update(int idBrend, bool isAdmin, [FromBody] Brand brend, IBrendRepository repository)
+    private async Task<IResult> Update(HttpContext httpContext, int idBrend, [FromBody] Brand brend, IBrendRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
 
         bool check = await repository.UpdateAsync(idBrend, brend, true);
@@ -57,8 +62,9 @@ public class BrendApi : IApi
 
     }
 
-    private async Task<IResult> AddBrend([FromBody] Brand brend, bool isAdmin, IBrendRepository repository)
+    private async Task<IResult> AddBrend(HttpContext httpContext, [FromBody] Brand brend, IBrendRepository repository)
     {
+        bool isAdmin = SharedDomainModels.Extensions.ExtensionAvtorization.CheckAuthenticated(httpContext);
         if (!isAdmin) return Results.StatusCode(StatusCodes.Status403Forbidden);
         await repository.AddBrendAsync(brend, isAdmin);
         //return Results.Ok($"Добавили новый бренд с ID {brend.BrandId}");
