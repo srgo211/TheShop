@@ -44,6 +44,8 @@ public class HttpClientService :  IHttpClientService
 
     public async Task<IProduct> GetProduct(int page, int itemsPerPage=1)
     {
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "<Your_JWT_Token>");
+
         string url = $"{botConfig.HostAddressCatalogProduct}/products/paged?page={page}&itemsPerPage={itemsPerPage}";
         var response = await httpClient.GetAsync(url);
         if (response.IsSuccessStatusCode)
