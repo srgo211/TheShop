@@ -19,7 +19,7 @@ public class UserController : ControllerBase
         this.jwtTokenService = jwtTokenService;
     }
 
-    [HttpPost("create")]
+    [HttpPost("addUser")]
     public async Task<ActionResult<User>> CreateUser(User user)
     {
         user.CreatedAt = DateTime.UtcNow;
@@ -44,18 +44,31 @@ public class UserController : ControllerBase
         return Ok(await userRepository.GetAllAsync());
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("getUserFromGuid/{id}")]
     public async Task<ActionResult<User>> GetUser(Guid id)
     {
         User? user = await userRepository.GetByIdAsync(id);
-        if (user == null)
+        if (user is null)
         {
             return NotFound();
         }
         return user;
     }
 
-    [HttpPut("{id}")]
+
+    [HttpGet("getUserFromUserId/{id}")]
+    public async Task<ActionResult<User>> GetUser(long id)
+    {
+        User? user = await userRepository.GetByUserIdAsync(id);
+        if (user is null)
+        {
+            return NotFound();
+        }
+        return user;
+    }
+
+
+    [HttpPut("updateUser/{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, User updatedUser)
     {
         if (id != updatedUser.Guid)
@@ -109,6 +122,6 @@ public class UserController : ControllerBase
     private async Task<bool> UserExists(Guid id)
     {
         User? user = await userRepository.GetByIdAsync(id);
-        return user != null;
+        return user is not null;
     }
 }

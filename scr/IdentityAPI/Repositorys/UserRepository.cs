@@ -36,6 +36,11 @@ public class UserRepository : Interfaces.Repositorys.IUserRepository
         return await dbContext.Set<User>().FindAsync(id);
     }
 
+    public async Task<User> GetByUserIdAsync(long userId)
+    {
+        return await dbContext.Set<User>().FirstOrDefaultAsync(x => x.UserId == userId);
+    }
+
     public async Task DeleteAsync(Guid id)
     {
         User? user = await dbContext.Set<User>().FindAsync(id);
@@ -45,4 +50,6 @@ public class UserRepository : Interfaces.Repositorys.IUserRepository
             await dbContext.SaveChangesAsync();
         }
     }
+
+    
 }

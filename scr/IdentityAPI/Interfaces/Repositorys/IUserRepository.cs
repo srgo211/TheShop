@@ -8,5 +8,6 @@ public interface IUserRepository
     Task<User> UpdateAsync(User user);
     Task<IEnumerable<User>> GetAllAsync();
     Task<User> GetByIdAsync(Guid id);
+    Task<User> GetByUserIdAsync(long userId);
     Task DeleteAsync(Guid id);
 }
