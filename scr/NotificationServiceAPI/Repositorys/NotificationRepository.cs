@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using MongoDB.Bson;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using NotificationServiceAPI.DTO;
 using NotificationServiceAPI.Interfaces;
 
@@ -8,148 +6,51 @@ namespace NotificationServiceAPI.Repositorys;
 
 public class NotificationRepository : INotificationRepository
 {
-    private readonly IMongoCollection<User> _usersCollection;
+    private readonly IMongoCollection<Notification> _notificationCollection;
 
-    public NotificationRepository(IMongoClient mongoClient, string databaseName)
+    public NotificationRepository(IMongoClient mongoClient, string databaseName, string collectionName)
     {
-        _usersCollection = mongoClient.GetDatabase(databaseName).GetCollection<User>("Users");
+        var database = mongoClient.GetDatabase(databaseName);
+        _notificationCollection = database.GetCollection<Notification>(collectionName);
     }
 
-    public async Task AddNotificationToUserAsync(Guid id , Notification notification)
+    public async Task<List<Notification>> GetAllNotificationsAsync()
     {
-        var filter = Builders<User>.Filter.Eq(u => u.Id, id);
-        var update = Builders<User>.Update.Push(u => u.Notifications, notification);
-        await _usersCollection.UpdateOneAsync(filter, update);
+        return await _notificationCollection.Find(_ => true).ToListAsync();
     }
 
-    public async Task AddNotificationsToUserAsync(Guid id, List<Notification> notifications)
+    public async Task<List<Notification>> GetNotificationsByUserGuidAsync(Guid userGuid)
     {
-        var filter = Builders<User>.Filter.Eq(u => u.Id, id);
-        var update = Builders<User>.Update.PushEach(u => u.Notifications, notifications);
-        await _usersCollection.UpdateOneAsync(filter, update);
+        return await _notificationCollection.Find(n => n.UserGuid == userGuid).ToListAsync();
     }
 
-    public async Task UpdateUserNotificationAsync(Guid id, Notification notification)
+    public async Task<List<Notification>> GetNotificationsByUserIdAsync(long userId)
     {
-        var userFilter = Builders<User>.Filter.Eq(u => u.Id, id);
-        var notificationFilter = Builders<User>.Filter.ElemMatch(u => u.Notifications, n => n.Id == notification.Id);
-        var combinedFilter = Builders<User>.Filter.And(userFilter, notificationFilter);
-
-        var update = Builders<User>.Update.Set(u => u.Notifications[-1], notification);
-        await _usersCollection.UpdateOneAsync(combinedFilter, update);
+        return await _notificationCollection.Find(n => n.UserId == userId).ToListAsync();
     }
 
-    public async Task DeleteNotificationFromUserAsync(Guid id, Guid notificationId)
+    public async Task<Notification> GetNotificationByIdAsync(Guid id)
     {
-        var filter = Builders<User>.Filter.Eq(u => u.Id, id);
-        var update = Builders<User>.Update.PullFilter(u => u.Notifications, n => n.Id == notificationId);
-        await _usersCollection.UpdateOneAsync(filter, update);
+        return await _notificationCollection.Find(n => n.Id == id).FirstOrDefaultAsync();
     }
 
-
-
-    public async Task<IEnumerable<User>> GetAllUsersWithNotificationsByStatusAsync(NotificationStatus status)
+    public async Task<List<Notification>> GetNotificationsByStatusAsync(SubscriptionStatus subscriptionStatus, NotificationStatus status, DateTime currentDate)
     {
-
-
-        var pipeline = new BsonDocument[]
-        {
-            new BsonDocument("$addFields", new BsonDocument
-            {
-                {
-                    "Notifications", new BsonDocument("$filter", new BsonDocument
-                    {
-                        { "input", "$Notifications" },
-                        { "as", "notification" },
-                        { "cond", new BsonDocument("$eq", new BsonArray { "$$notification.Status", (int)status }) }
-                    })
-                }
-            })
-        };
-
-        var usersWithFilteredNotifications = await _usersCollection.Aggregate<User>(pipeline).ToListAsync();
-
-        return usersWithFilteredNotifications;
-
+        return await _notificationCollection.Find(n => n.SubscriptionStatus == subscriptionStatus && n.Status == status && n.SendDate <= currentDate).ToListAsync();
     }
 
-    public async Task<IEnumerable<User>> GetUsersAndNotificationsByStatusAsync(NotificationStatus notificationStatus, SubscriptionStatus subscriptionStatus)
+    public async Task CreateNotificationAsync(Notification notification)
     {
-        var pipeline = new BsonDocument[]
-        {
-            new BsonDocument("$match", new BsonDocument("Status", (int)subscriptionStatus)),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-                {
-                    "Notifications", new BsonDocument("$filter", new BsonDocument
-                    {
-                        { "input", "$Notifications" },
-                        { "as", "notification" },
-                        { "cond", new BsonDocument("$eq", new BsonArray { "$$notification.Status", (int)notificationStatus }) }
-                    })
-                }
-            })
-        };
-
-        return await _usersCollection.Aggregate<User>(pipeline).ToListAsync();
+        await _notificationCollection.InsertOneAsync(notification);
     }
 
-    public async Task<IEnumerable<User>> GetUsersNotificationsByStatusAndSendDateAsync(
-        NotificationStatus notificationStatus,
-        SubscriptionStatus subscriptionStatus,
-        DateTime sendDate)
+    public async Task UpdateNotificationAsync(Guid id, Notification updatedNotification)
     {
-        var filterDate = sendDate.Date; // Assuming you want to filter by date without time part
-
-        var pipeline = new BsonDocument[]
-        {
-            new BsonDocument("$match",
-                new BsonDocument("Status", (int)subscriptionStatus)
-            ),
-            new BsonDocument("$addFields",
-                new BsonDocument("Notifications",
-                    new BsonDocument("$filter",
-                        new BsonDocument
-                        {
-                            { "input", "$Notifications" },
-                            { "as", "notification" },
-                            { "cond", new BsonDocument("$and", new BsonArray
-                                {
-                                    new BsonDocument("$eq", new BsonArray { "$$notification.Status", (int)notificationStatus }),
-                                    new BsonDocument("$eq", new BsonArray { "$$notification.SendDate", new BsonDateTime(filterDate) })
-                                })
-                            }
-                        })
-                )
-            )
-        };
-
-        return await _usersCollection.Aggregate<User>(pipeline).ToListAsync();
+        await _notificationCollection.ReplaceOneAsync(n => n.Id == id, updatedNotification);
     }
 
-
-    public async Task<bool> UpdateNotificationAsync(Guid notificationId, Notification updatedNotification)
+    public async Task DeleteNotificationAsync(Guid id)
     {
-        var userFilter = Builders<User>.Filter.ElemMatch(u => u.Notifications, n => n.Id == notificationId);
-        var updateDefinition = Builders<User>.Update
-            .Set("Notifications.$.Message", updatedNotification.Message)
-            .Set("Notifications.$.SendDate", updatedNotification.SendDate)
-            .Set("Notifications.$.Status", updatedNotification.Status);
-
-
-
-        UpdateResult? updateResult = default;
-        try
-        {
-            updateResult = await _usersCollection.UpdateOneAsync(userFilter, updateDefinition);
-
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine(e.Message);
-            throw;
-        }
-
-        return updateResult.ModifiedCount == 1;
+        await _notificationCollection.DeleteOneAsync(n => n.Id == id);
     }
 }

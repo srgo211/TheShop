@@ -5,19 +5,12 @@ namespace NotificationServiceAPI.Interfaces;
 
 public interface INotificationRepository
 {
-    Task AddNotificationToUserAsync(Guid id, Notification notification);
-    Task AddNotificationsToUserAsync(Guid id, List<Notification> notifications);
-    Task UpdateUserNotificationAsync(Guid id, Notification notification);
-    Task DeleteNotificationFromUserAsync(Guid id, Guid notificationId);
-
-    Task<IEnumerable<User>> GetAllUsersWithNotificationsByStatusAsync(NotificationStatus status);
-
-    Task<IEnumerable<User>> GetUsersAndNotificationsByStatusAsync(NotificationStatus notificationStatus, SubscriptionStatus subscriptionStatus);
-
-    Task<IEnumerable<User>> GetUsersNotificationsByStatusAndSendDateAsync(
-        NotificationStatus notificationStatus,
-        SubscriptionStatus subscriptionStatus,
-        DateTime sendDate);
-
-    Task<bool> UpdateNotificationAsync(Guid notificationId, Notification updatedNotification);
+    Task<List<Notification>> GetAllNotificationsAsync();
+    Task<List<Notification>> GetNotificationsByUserGuidAsync(Guid userGuid);
+    Task<List<Notification>> GetNotificationsByUserIdAsync(long userId);
+    Task<Notification> GetNotificationByIdAsync(Guid id);
+    Task<List<Notification>> GetNotificationsByStatusAsync(SubscriptionStatus subscriptionStatus, NotificationStatus status, DateTime currentDate);
+    Task CreateNotificationAsync(Notification notification);
+    Task UpdateNotificationAsync(Guid id, Notification updatedNotification);
+    Task DeleteNotificationAsync(Guid id);
 }

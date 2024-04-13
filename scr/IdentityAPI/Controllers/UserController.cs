@@ -84,7 +84,7 @@ public class UserController : ControllerBase
         }
         catch (Exception)
         {
-            if (!await UserExists(id))
+            if (!await UserExistsAsync(id))
             {
                 return NotFound();
             }
@@ -95,7 +95,7 @@ public class UserController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
-        if (!await UserExists(id))
+        if (!await UserExistsAsync(id))
         {
             return NotFound();
         }
@@ -117,9 +117,26 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    
 
-    private async Task<bool> UserExists(Guid id)
+
+    [HttpGet("isCheckUser/{id}")]
+    public async Task<ActionResult<User>> CheckUser(Guid id)
+    {
+        bool check = await UserExistsAsync(id);
+        return Ok(new { IsUser = check });
+
+    }
+
+    [HttpGet("isCheckUserFromUserId/{id}")]
+    public async Task<ActionResult<User>> CheckUser(long id)
+    {
+        User? user = await userRepository.GetByUserIdAsync(id);
+        bool check = user is not null;
+        return Ok(new { IsUser = check });
+
+    }
+
+    private async Task<bool> UserExistsAsync(Guid id)
     {
         User? user = await userRepository.GetByIdAsync(id);
         return user is not null;

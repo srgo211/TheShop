@@ -56,7 +56,7 @@ void ConfigureApplication(WebApplication app)
 }
 void RegisterServices(IServiceCollection services, IConfiguration configuration)
 {
-    Console.WriteLine("Регистрация сервисов");
+    logger.LogInformation("Регистрация сервисов");
 
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen(opt =>
@@ -64,9 +64,10 @@ void RegisterServices(IServiceCollection services, IConfiguration configuration)
         opt.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Notification Service", Version = "v1" });
     });
 
-    var mongoDbSettings = builder.Configuration.GetSection("MongoDB");
-    var connection = mongoDbSettings["ConnectionString"] ?? "mongodb://62.113.109.181:27017"; ;
-    string databaseName =  mongoDbSettings["DatabaseName"] ?? "NotificationDb";
+    var mongoDbSettings   =  builder.Configuration.GetSection("MongoDB");
+    var connection        =  mongoDbSettings["ConnectionString"] ?? "mongodb://62.113.109.181:27017"; 
+    string databaseName   =  mongoDbSettings["DatabaseName"]     ?? "NotificationDb";
+    string collectionName =  mongoDbSettings["CollectionName"]   ?? "Notifications";
 
     logger.LogInformation($"Подключаем mongoDb:{connection} :{databaseName}");
 
@@ -75,11 +76,10 @@ void RegisterServices(IServiceCollection services, IConfiguration configuration)
 
     services.AddSingleton<IMongoClient>(mongoClient);
 
-    builder.Services.AddScoped<IUserRepository>(sp => new UserRepository(mongoClient, databaseName));
-    builder.Services.AddScoped<INotificationRepository>(sp => new NotificationRepository(mongoClient, databaseName));
+    builder.Services.AddScoped<NotificationRepository>(sp => new NotificationRepository(sp.GetRequiredService<IMongoClient>(), databaseName, collectionName));
+
 
     // API registration
-    services.AddTransient<IApi, UserApi>();
     services.AddTransient<IApi, NotificationApi>();
 }
 void ConfigureLogging(ILoggingBuilder logging)

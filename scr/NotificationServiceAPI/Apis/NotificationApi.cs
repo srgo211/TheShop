@@ -1,5 +1,6 @@
 ﻿using NotificationServiceAPI.DTO;
 using NotificationServiceAPI.Interfaces;
+using NotificationServiceAPI.Repositorys;
 
 namespace NotificationServiceAPI.Apis;
 
@@ -7,54 +8,27 @@ public class NotificationApi : IApi
 {
     public void Register(WebApplication app)
     {
-        // Notification endpoints
-        app.MapPost("/notifications/Add", async (Guid id, Notification notification, INotificationRepository notificationRepository) =>
-        {
-            await notificationRepository.AddNotificationToUserAsync(id, notification);
-            return Results.Created($"/users/{id}/notifications/{notification.Id}", notification);
+        app.MapGet("/notifications", async (NotificationRepository service) => await service.GetAllNotificationsAsync());
+        app.MapGet("/notifications/userGuid/{userGuid}", async (NotificationRepository service, Guid userGuid) => await service.GetNotificationsByUserGuidAsync(userGuid));
+        app.MapGet("/notifications/userId/{userId}", async (NotificationRepository service, long userId) => await service.GetNotificationsByUserIdAsync(userId));
+        app.MapGet("/notifications/id/{id}", async (NotificationRepository service, Guid id) => await service.GetNotificationByIdAsync(id));
+        app.MapGet("/notifications/status", async (NotificationRepository service, SubscriptionStatus subscriptionStatus, NotificationStatus status, DateTime date) => await service.GetNotificationsByStatusAsync(subscriptionStatus, status, date));
+
+        app.MapPost("/notifications", async (NotificationRepository service, Notification notification) => {
+            await service.CreateNotificationAsync(notification);
+            return Results.Created($"/notifications/id/{notification.Id}", notification);
         });
 
-
-        app.MapDelete("/notifications/Delete", async (Guid id, Guid notificationId, INotificationRepository notificationRepository) =>
-        {
-            await notificationRepository.DeleteNotificationFromUserAsync(id, notificationId);
-            return Results.NoContent();
+        app.MapPut("/notifications/{id}", async (NotificationRepository service, Guid id, Notification notification) => {
+            await service.UpdateNotificationAsync(id, notification);
+            return Results.Ok(notification);
         });
 
-        app.MapGet("/notifications/statusNotification", async (NotificationStatus status, INotificationRepository notificationRepository) =>
-        {
-            var users = await notificationRepository.GetAllUsersWithNotificationsByStatusAsync(status);
-            return Results.Ok(users);
+        app.MapDelete("/notifications/{id}", async (NotificationRepository service, Guid id) => {
+            await service.DeleteNotificationAsync(id);
+            return Results.Ok($"Notification with ID {id} deleted.");
         });
 
-        app.MapGet("/notifications/filterStatus", async (NotificationStatus notificationStatus, SubscriptionStatus subscriptionStatus, INotificationRepository notificationRepository) =>
-        {
-            var users = await notificationRepository.GetUsersAndNotificationsByStatusAsync(notificationStatus, subscriptionStatus);
-            return Results.Ok(users);
-        });
-
-
-        app.MapGet("/notifications/filterStatusAndDate", async (NotificationStatus notificationStatus, SubscriptionStatus subscriptionStatus, DateTime sendDate, INotificationRepository notificationRepository) =>
-        {
-            var users = await notificationRepository.GetUsersNotificationsByStatusAndSendDateAsync(notificationStatus, subscriptionStatus, sendDate);
-            return Results.Ok(users);
-        });
-
-
-        app.MapPut("/notifications/Update", async (Guid notificationId, Notification updateModel, INotificationRepository notificationRepository) =>
-        {
-            // Convert the update model to a Notification object. This step may vary based on your model design.
-            var updatedNotification = new Notification
-            {
-                Message  = updateModel.Message,
-                SendDate = updateModel.SendDate,
-                Status   = updateModel.Status
-            };
-            
-            var success = await notificationRepository.UpdateNotificationAsync(notificationId, updatedNotification);
-
-            return success ? Results.Ok() : Results.NotFound();
-        });
 
     }
 }
