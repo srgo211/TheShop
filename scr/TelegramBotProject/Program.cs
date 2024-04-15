@@ -3,7 +3,7 @@ using TelegramBotProject.Interfaces;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+ILogger<Program> logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Старт приложения TelegramBot");
 
 RegisterServices(builder.Services);
@@ -40,7 +40,7 @@ void ConfigureApplication(WebApplication app)
     // Настройка статических файлов
     app.UseStaticFiles();
 
-    var pathStatic = Path.Combine(Directory.GetCurrentDirectory(), "img");
+    string pathStatic = Path.Combine(Directory.GetCurrentDirectory(), "img");
     logger.LogInformation($"Файлы: {pathStatic}");
     app.UseStaticFiles(new StaticFileOptions
     {

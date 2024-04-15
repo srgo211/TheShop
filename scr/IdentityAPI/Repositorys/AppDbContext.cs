@@ -5,7 +5,7 @@ namespace IdentityAPI.Repositorys;
 
 public class AppDbContext : DbContext
 {
-    public DbSet<User> Products => Set<User>();
+    public DbSet<User> Users => Set<User>();
     
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) => Database.EnsureCreated();

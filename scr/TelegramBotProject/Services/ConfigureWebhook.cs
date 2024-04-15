@@ -18,10 +18,10 @@ public class ConfigureWebhook : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var scope = _services.CreateScope();
-        var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
+        using IServiceScope scope = _services.CreateScope();
+        ITelegramBotClient botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
 
-        var webhookAddress = @$"{_botConfig.WebhookAddress}/getUpdates";
+        string webhookAddress = @$"{_botConfig.WebhookAddress}/getUpdates";
 
 
         _logger.LogInformation("Setting webhook: {webhookAddress}", webhookAddress);
@@ -35,8 +35,8 @@ public class ConfigureWebhook : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        using var scope = _services.CreateScope();
-        var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
+        using IServiceScope scope = _services.CreateScope();
+        ITelegramBotClient botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
 
         // Remove webhook upon app shutdown
         _logger.LogInformation("Removing webhook");

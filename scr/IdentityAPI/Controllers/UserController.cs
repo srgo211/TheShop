@@ -12,7 +12,6 @@ public class UserController : ControllerBase
     private readonly IUserRepository userRepository;
     private readonly IJwtTokenService jwtTokenService;
 
-
     public UserController(IUserRepository userRepository, IJwtTokenService jwtTokenService)
     {
         this.userRepository = userRepository;
@@ -20,7 +19,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("addUser")]
-    public async Task<ActionResult<User>> CreateUser(User user)
+    public async Task<ActionResult<User>> CreateUser([FromBody] User user)
     {
         user.CreatedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
@@ -44,20 +43,19 @@ public class UserController : ControllerBase
         return Ok(await userRepository.GetAllAsync());
     }
 
-    [HttpGet("getUserFromGuid/{id}")]
-    public async Task<ActionResult<User>> GetUser(Guid id)
+    [HttpGet("getUserFromGuid")]
+    public async Task<ActionResult<User>> GetUser([FromQuery] Guid guid)
     {
-        User? user = await userRepository.GetByIdAsync(id);
+        User? user = await userRepository.GetByIdAsync(guid);
         if (user is null)
         {
             return NotFound();
         }
         return user;
     }
-
-
-    [HttpGet("getUserFromUserId/{id}")]
-    public async Task<ActionResult<User>> GetUser(long id)
+    
+    [HttpGet("getUserFromUserId")]
+    public async Task<ActionResult<User>> GetUser([FromQuery] long id)
     {
         User? user = await userRepository.GetByUserIdAsync(id);
         if (user is null)
@@ -66,25 +64,27 @@ public class UserController : ControllerBase
         }
         return user;
     }
-
-
-    [HttpPut("updateUser/{id}")]
-    public async Task<IActionResult> UpdateUser(Guid id, User updatedUser)
+    
+    [HttpPut("updateUser")]
+    public async Task<IActionResult> UpdateUser([FromQuery] Guid guid, [FromBody] User updatedUser)
     {
-        if (id != updatedUser.Guid)
-        {
-            return BadRequest("Mismatched user ID");
-        }
+        User? user = await userRepository.GetByIdAsync(guid);
+        if (user is null) return NotFound();
+
 
         try
         {
+            updatedUser.Guid      = user.Guid;
+            updatedUser.UserId    = user.UserId;
+            updatedUser.CreatedAt = user.CreatedAt;
+            updatedUser.TupeRole  = user.TupeRole;
             updatedUser.UpdatedAt = DateTime.UtcNow;
             await userRepository.UpdateAsync(updatedUser);
             return NoContent();
         }
         catch (Exception)
         {
-            if (!await UserExistsAsync(id))
+            if (!await UserExistsAsync(guid))
             {
                 return NotFound();
             }
@@ -92,8 +92,8 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(Guid id)
+    [HttpDelete("deleteUser")]
+    public async Task<IActionResult> DeleteUser([FromQuery] Guid id)
     {
         if (!await UserExistsAsync(id))
         {
@@ -117,18 +117,15 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-
-
-    [HttpGet("isCheckUser/{id}")]
-    public async Task<ActionResult<User>> CheckUser(Guid id)
+    [HttpGet("isCheckUser")]
+    public async Task<ActionResult<User>> CheckUser([FromQuery] Guid guid)
     {
-        bool check = await UserExistsAsync(id);
+        bool check = await UserExistsAsync(guid);
         return Ok(new { IsUser = check });
-
     }
 
-    [HttpGet("isCheckUserFromUserId/{id}")]
-    public async Task<ActionResult<User>> CheckUser(long id)
+    [HttpGet("isCheckUserFromUserId")]
+    public async Task<ActionResult<User>> CheckUser([FromQuery] long id)
     {
         User? user = await userRepository.GetByUserIdAsync(id);
         bool check = user is not null;

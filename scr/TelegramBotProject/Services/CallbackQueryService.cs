@@ -23,7 +23,7 @@ public class CallbackQueryService : BaseService, ICallbackQueryService
     internal async Task BotOnCallbackQueryReceived(CallbackQuery callbackQuery)
     {
         string callback = callbackQuery?.Data;
-        var message = callbackQuery.Message;
+        Message? message = callbackQuery.Message;
 
         
         long userId = GetUserId(message);
@@ -94,12 +94,12 @@ public class CallbackQueryService : BaseService, ICallbackQueryService
     async Task edite(CallbackQuery callbackQuery)
     {
         // ID чата и ID сообщения, которое нужно изменить
-        var chatId = callbackQuery.Message.Chat.Id;
-        var messageId = callbackQuery.Message.MessageId;
+        long chatId = callbackQuery.Message.Chat.Id;
+        int messageId = callbackQuery.Message.MessageId;
 
         // Новый текст сообщения и набор кнопок
-        var newText = "Измененный текст сообщения";
-        var newInlineKeyboard = new InlineKeyboardMarkup(new[]
+        string newText = "Измененный текст сообщения";
+        InlineKeyboardMarkup newInlineKeyboard = new InlineKeyboardMarkup(new[]
         {
             InlineKeyboardButton.WithCallbackData("New button", "new_action")
         });

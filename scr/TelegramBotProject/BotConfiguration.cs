@@ -10,5 +10,6 @@ public class BotConfiguration
     public string? WebhookAddress { get; init; }
     public string? HostFilesAddress { get; init; }
     public string? HostAddressCatalogProduct { get; init; }
+    public string? HostAddressIdentity { get; init; }
     public string? NotificationService   { get; init; }
 }

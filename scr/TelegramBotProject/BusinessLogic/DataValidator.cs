@@ -12,7 +12,7 @@ public class DataValidator
         try
         {
             string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            var regex = new Regex(pattern, RegexOptions.IgnoreCase);
+            Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
             return regex.IsMatch(email);
         }
         catch (RegexMatchTimeoutException)

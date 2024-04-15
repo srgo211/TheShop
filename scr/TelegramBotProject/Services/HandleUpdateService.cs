@@ -11,7 +11,15 @@ public class HandleUpdateService : BaseService
     private readonly IMessageService _messageService;
 
 
-    public HandleUpdateService(BotConfiguration botConfig, ITelegramBotClient bot, CommandSwitchController commandSwitchController, ILogger<HandleUpdateService> logger, ICommandHandler commandHandler, ICallbackQueryService callbackQueryService, IMessageService messageService) : base(botConfig, bot, commandSwitchController)
+    public HandleUpdateService(BotConfiguration botConfig, 
+        ITelegramBotClient bot, 
+        CommandSwitchController commandSwitchController, 
+        ILogger<HandleUpdateService> logger, 
+        ICommandHandler commandHandler, 
+        ICallbackQueryService callbackQueryService, 
+        IMessageService messageService,
+        IHttpClientService httpClient) 
+        : base(botConfig, bot, commandSwitchController)
     {
         _logger = logger;
         _commandHandler = commandHandler;

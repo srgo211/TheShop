@@ -1,4 +1,6 @@
-﻿using TelegramBotProject.BusinessLogic;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net.Http;
+using TelegramBotProject.BusinessLogic;
 using TelegramBotProject.DTO;
 using TelegramBotProject.Interfaces;
 using TelegramBotProject.Interfaces.Models;
@@ -16,13 +18,14 @@ public class BaseService
         this.botConfig = botConfig;
         this.bot = bot;
         this.commandSwitchController = commandSwitchController;
+       
     }
 
     protected async Task<Message>? NotificationSubscription(Message message)
     {
-        var userId = GetUserId(message);
+        long userId = GetUserId(message);
 
-        commandSwitchController.UserCommandStatuses.TryGetValue(userId, out var commandStatus);
+        commandSwitchController.UserCommandStatuses.TryGetValue(userId, out ICommandStatuses? commandStatus);
 
       
         bool chek = DataValidator.IsValidEmail(message.Text);
@@ -50,46 +53,9 @@ public class BaseService
         return userId;
     }
 
-    protected async Task<Message> Start(Message message)
-    {
-        var userId = GetUserId(message);
+   
 
-        if (commandSwitchController.UserCommandStatuses.ContainsKey(userId))
-        {
-            var newCommandStatus = new CommandStatuses();
-            commandSwitchController.UserCommandStatuses.AddOrUpdate(userId, newCommandStatus, (key, oldValue) => newCommandStatus);
-
-
-        }
-        else commandSwitchController.UserCommandStatuses.TryAdd(userId, new CommandStatuses());
-
-        ICommandStatuses? commandStatuses =
-            commandSwitchController.UserCommandStatuses.GetOrAdd(userId, new CommandStatuses());
-
-
-        string url = $"{botConfig.HostFilesAddress}/img/logo.jpg";
-        string text = $"Добро пожаловать в интернет-магазин<a href=\"{url}\">!</a>";
-
-
-        InlineKeyboardMarkup keyboard = new(
-            new[]
-            {
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(TextComands.subscribe, TextComands.subscribe),
-                    InlineKeyboardButton.WithCallbackData(TextComands.unsubscribe, TextComands.unsubscribe),
-
-                },
-            });
-
-
-        return await bot.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: text,
-            parseMode: ParseMode.Html,
-            replyMarkup: keyboard,
-            disableWebPagePreview: false
-        );
-    }
+   
 
     protected async Task<Message> MenuStore(Message message)
     {
@@ -151,16 +117,16 @@ public class BaseService
     protected async Task<Message> ProductСatalog(Message message, int page, int itemsPerPage)
     {
 
-        var product = await GetProduct(page, itemsPerPage);
+        IProduct product = await GetProduct(page, itemsPerPage);
 
         string url = $"{botConfig.HostFilesAddress}/img/{product.Images.FirstOrDefault()?.Name}";
         string link = $"<a href=\"{url}\">link</a>";
 
         int productId                 = product.Id;
         string productName            = product.Name;
-        var productPrice       = product.Price;
-        var productStockQuantity   = product.StockQuantity;
-        var productDescription  = product.Description;
+        decimal productPrice       = product.Price;
+        int productStockQuantity   = product.StockQuantity;
+        string productDescription  = product.Description;
         string brandName              = product.Brand.Name;
         string categorieName          = product.Categorie.Name;
 
@@ -209,20 +175,20 @@ public class BaseService
     {
 
         // ID чата и ID сообщения, которое нужно изменить
-        var chatId   = callbackQuery.Message.Chat.Id;
-        var messageId = callbackQuery.Message.MessageId;
+        long chatId   = callbackQuery.Message.Chat.Id;
+        int messageId = callbackQuery.Message.MessageId;
 
 
-        var product = await GetProduct(page, itemsPerPage);
+        IProduct product = await GetProduct(page, itemsPerPage);
 
         string url = $"{botConfig.HostFilesAddress}/img/{product.Images.FirstOrDefault()?.Name}";
         string link = $"<a href=\"{url}\">link</a>";
 
         int productId = product.Id;
         string productName = product.Name;
-        var productPrice = product.Price;
-        var productStockQuantity = product.StockQuantity;
-        var productDescription = product.Description;
+        decimal productPrice = product.Price;
+        int productStockQuantity = product.StockQuantity;
+        string productDescription = product.Description;
         string brandName = product.Brand.Name;
         string categorieName = product.Categorie.Name;
 
@@ -258,7 +224,7 @@ public class BaseService
 
 
         // Изменение текста сообщения
-        var message = await bot.EditMessageTextAsync(
+        Message message = await bot.EditMessageTextAsync(
             chatId: chatId,
             messageId: messageId,
             text: text,
@@ -292,9 +258,9 @@ public class BaseService
 
     protected void UpStatusCommand(long userId, TypeStatusCommand statusCommand)
     {
-        if (commandSwitchController.UserCommandStatuses.TryGetValue(userId, out var value))
+        if (commandSwitchController.UserCommandStatuses.TryGetValue(userId, out ICommandStatuses? value))
         {
-            var newModel = new CommandStatuses(value.Subscription = statusCommand);
+            CommandStatuses newModel = new CommandStatuses(value.Subscription = statusCommand);
             bool updateSuccess = commandSwitchController.UserCommandStatuses.TryUpdate(userId, newModel, value);
         }
     }
