@@ -1,4 +1,9 @@
 using Microsoft.Extensions.FileProviders;
+using RabbitMQ.Client;
+using SharedInterfaces;
+using System.Text;
+using Microsoft.AspNetCore.Mvc;
+using SharedDomainModels;
 using TelegramBotProject.Interfaces;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -26,7 +31,21 @@ app.MapPost($"/getUpdates", async (
 
             await handleUpdateService.HandleUpdateAsync(update);
             return Results.Ok();
-        }).WithName("TelegramWebhook");
+        }).WithName("TelegramWebhook")
+          .WithMetadata(new ApiExplorerSettingsAttribute { IgnoreApi = true }); 
+
+
+app.MapPost("/send", async (string queueName, Notification message, IRabbitMQConnectionManager rabbitMQ) =>
+{
+    using var channel = rabbitMQ.CreateChannel(queueName);
+
+    var json = System.Text.Json.JsonSerializer.Serialize(message);
+    var body = Encoding.UTF8.GetBytes(json);
+
+    channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: null, body: body);
+    return Results.Ok($"Сообщение отправлено  на: {queueName}:\n[{message.Theme}]\n{message.Message}");
+});
+
 
 app.Run();
 
@@ -94,6 +113,10 @@ void RegisterServices(IServiceCollection services)
 
     // Add services to the DI container.
     builder.Services.AddSingleton<BotConfiguration>(botConfiguration);
+
+    // Регистрация фабрики подключений к RabbitMQ
+    builder.Services.AddSingleton<IRabbitMQConnectionManager>(new RabbitMQConnectionManager("localhost"));
+
 
 
     builder.Services.AddSingleton<CommandSwitchController>();
