@@ -1,6 +1,7 @@
-﻿using NotificationServiceAPI.DTO;
-using NotificationServiceAPI.Interfaces;
+﻿using NotificationServiceAPI.Interfaces;
 using NotificationServiceAPI.Repositorys;
+using SharedDomainModels;
+using SharedInterfaces;
 
 namespace NotificationServiceAPI.Apis;
 
@@ -29,6 +30,7 @@ public class NotificationApi : IApi
             await service.DeleteNotificationAsync(id);
             return Results.Ok($"Notification with ID {id} deleted.");
         });
+
 
 
     }

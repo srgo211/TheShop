@@ -1,6 +1,7 @@
 ﻿using MongoDB.Driver;
-using NotificationServiceAPI.DTO;
 using NotificationServiceAPI.Interfaces;
+using SharedDomainModels;
+using SharedInterfaces;
 
 namespace NotificationServiceAPI.Repositorys;
 

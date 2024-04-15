@@ -10,7 +10,13 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.15" />
     <PackageReference Include="MongoDB.Bson" Version="2.24.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.24.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SharedDomainModels\SharedDomainModels.csproj" />
+    <ProjectReference Include="..\SharedInterfaces\SharedInterfaces.csproj" />
   </ItemGroup>
 
 </Project>

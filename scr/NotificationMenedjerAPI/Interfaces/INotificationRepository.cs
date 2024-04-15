@@ -1,5 +1,5 @@
-﻿using NotificationServiceAPI.DTO;
-using System;
+﻿using SharedDomainModels;
+using SharedInterfaces;
 
 namespace NotificationServiceAPI.Interfaces;
 

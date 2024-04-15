@@ -1,5 +1,4 @@
 using MongoDB.Driver;
-using MongoDB.Driver.Core.Connections;
 using NotificationServiceAPI.Apis;
 using NotificationServiceAPI.Interfaces;
 using NotificationServiceAPI.Repositorys;
@@ -27,6 +26,8 @@ ConfigureApplication(app);
 
 
 app.Run();
+
+
 
 void ConfigureApplication(WebApplication app)
 {
@@ -65,7 +66,7 @@ void RegisterServices(IServiceCollection services, IConfiguration configuration)
     });
 
     var mongoDbSettings   =  builder.Configuration.GetSection("MongoDB");
-    var connection        =  mongoDbSettings["ConnectionString"] ?? "mongodb://62.113.109.181:27017"; 
+    var connection  =  mongoDbSettings["ConnectionString"] ?? "mongodb://62.113.109.181:27017"; 
     string databaseName   =  mongoDbSettings["DatabaseName"]     ?? "NotificationDb";
     string collectionName =  mongoDbSettings["CollectionName"]   ?? "Notifications";
 
@@ -75,6 +76,11 @@ void RegisterServices(IServiceCollection services, IConfiguration configuration)
     var mongoClient = new MongoClient(connection);
 
     services.AddSingleton<IMongoClient>(mongoClient);
+
+
+
+
+
 
     builder.Services.AddScoped<NotificationRepository>(sp => new NotificationRepository(sp.GetRequiredService<IMongoClient>(), databaseName, collectionName));
 
