@@ -58,6 +58,7 @@ public class NotificationRepository : INotificationRepository
             .Set(n => n.Message, updatedNotification.Message)
             .Set(n => n.SendDate, updatedNotification.SendDate)
             .Set(n => n.Status, updatedNotification.Status)
+            .Set(n => n.TypeChannel, updatedNotification.TypeChannel)
             .Set(n => n.SubscriptionStatus, updatedNotification.SubscriptionStatus);
 
         await _notificationCollection.UpdateOneAsync(n => n.Id == id, updateDefinition);

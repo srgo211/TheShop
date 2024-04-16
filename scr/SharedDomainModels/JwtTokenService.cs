@@ -94,7 +94,7 @@ public class JwtTokenService : IJwtTokenService
         };
     }
 
-    public string ParseJwtTokenFromJson(string token)
+    public static string ParseJwtTokenFromJson(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwtToken = tokenHandler.ReadJwtToken(token);

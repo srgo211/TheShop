@@ -13,4 +13,6 @@ public class Notification : INotification
     public DateTime? SendDate { get; set; }
     public NotificationStatus Status { get; set; } = NotificationStatus.Wait;
     public SubscriptionStatus SubscriptionStatus { get; set; } = SubscriptionStatus.Enable;
+    public TypeChannel TypeChannel { get; set; } = TypeChannel.Email | TypeChannel.Telegram | TypeChannel.File;
+
 }

@@ -21,24 +21,26 @@ public class UserRepository : Interfaces.Repositorys.IUserRepository
 
     public async Task<User> UpdateAsync(User user)
     {
-        dbContext.Update(user);
+        //dbContext.Update(user);
+        dbContext.Entry(user).State = EntityState.Modified;
         await dbContext.SaveChangesAsync();
         return user;
     }
 
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await dbContext.Set<User>().ToListAsync();
+        return await dbContext.Set<User>().AsNoTracking().ToListAsync();
     }
 
     public async Task<User> GetByIdAsync(Guid id)
     {
-        return await dbContext.Set<User>().FindAsync(id);
+        return await dbContext.Set<User>().AsNoTracking().FirstOrDefaultAsync(u => u.Guid == id);
     }
 
     public async Task<User> GetByUserIdAsync(long userId)
     {
-        return await dbContext.Set<User>().FirstOrDefaultAsync(x => x.UserId == userId);
+
+        return await dbContext.Set<User>().AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
     }
 
     public async Task DeleteAsync(Guid id)

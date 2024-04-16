@@ -17,11 +17,11 @@ public class TokenController : ControllerBase
         this.userRepository = userRepository;
     }
 
-    [HttpGet("getToken/{userId}")]
-    public async Task<IActionResult> GenerateToken(Guid userId)
+    [HttpGet("getToken")]
+    public async Task<IActionResult> GenerateToken([FromQuery] Guid guid)
     {
         // Получение пользователя по GUID
-        var user = await userRepository.GetByIdAsync(userId);
+        var user = await userRepository.GetByIdAsync(guid);
         if (user == null)
         {
             return NotFound("User not found.");

@@ -1,6 +1,8 @@
 ﻿using IdentityAPI.Interfaces.Repositorys;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using SharedDomainModels;
+using SharedDomainModels.Extensions;
 using SharedInterfaces;
 
 namespace IdentityAPI.Controllers;
@@ -68,6 +70,13 @@ public class UserController : ControllerBase
     [HttpPut("updateUser")]
     public async Task<IActionResult> UpdateUser([FromQuery] Guid guid, [FromBody] User updatedUser)
     {
+
+        
+        var tokenHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+        bool isAdmin = ExtensionAvtorization.IsAdmin(tokenHeader);
+
+
         User? user = await userRepository.GetByIdAsync(guid);
         if (user is null) return NotFound();
 
@@ -77,7 +86,10 @@ public class UserController : ControllerBase
             updatedUser.Guid      = user.Guid;
             updatedUser.UserId    = user.UserId;
             updatedUser.CreatedAt = user.CreatedAt;
-            updatedUser.TupeRole  = user.TupeRole;
+
+            if(!isAdmin) updatedUser.TupeRole = user.TupeRole;
+
+
             updatedUser.UpdatedAt = DateTime.UtcNow;
             await userRepository.UpdateAsync(updatedUser);
             return NoContent();
@@ -93,9 +105,9 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("deleteUser")]
-    public async Task<IActionResult> DeleteUser([FromQuery] Guid id)
+    public async Task<IActionResult> DeleteUser([FromQuery] Guid guid)
     {
-        if (!await UserExistsAsync(id))
+        if (!await UserExistsAsync(guid))
         {
             return NotFound();
         }
@@ -107,13 +119,10 @@ public class UserController : ControllerBase
             return Unauthorized("JWT token is missing or invalid.");
         }
 
+        bool isAdmin = ExtensionAvtorization.IsAdmin(tokenHeader);
+        if (!isAdmin) return Unauthorized("Не явл администратором");
 
-        if (tokenHeader.StartsWith("Bearer ")) tokenHeader = tokenHeader.Substring("Bearer ".Length).Trim();
-
-        var role = jwtTokenService.ParseJwtToken(tokenHeader)?.TupeRole ?? TupeRole.none;
-        if (role != TupeRole.admin) return Unauthorized("Не явл администратором");
-
-        await userRepository.DeleteAsync(id);
+        await userRepository.DeleteAsync(guid);
         return NoContent();
     }
 

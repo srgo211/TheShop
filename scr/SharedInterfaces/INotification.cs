@@ -6,6 +6,15 @@ using System.Threading.Tasks;
 
 namespace SharedInterfaces;
 
+[Flags]
+public enum TypeChannel
+{
+    None = 0,
+    Email = 2,
+    Telegram = 4,
+    File = 8,    
+}
+
 public enum NotificationStatus
 {
     None = 0,
@@ -32,6 +41,9 @@ public interface INotification
     string Message { get; set; }
     DateTime CreatedAt { get; set; }
     DateTime? SendDate { get; set; }
+
+    TypeChannel TypeChannel { get; set; }
+
     NotificationStatus Status { get; set; }
     SubscriptionStatus SubscriptionStatus { get; set; }
 }
