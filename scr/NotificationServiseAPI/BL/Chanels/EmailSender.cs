@@ -25,6 +25,8 @@ public class EmailSender : IMessageSender
 
     public async Task SendAsync(Notification notification)
     {
+        if (notification?.Email is null) return;
+
         try
         {
             using (var smtpClient = new SmtpClient(smtpServer))

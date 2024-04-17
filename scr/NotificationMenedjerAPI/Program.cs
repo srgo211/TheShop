@@ -81,8 +81,11 @@ void RegisterServices(IServiceCollection services, IConfiguration configuration)
 
     services.AddSingleton<IMongoClient>(mongoClient);
 
+    builder.Services.AddHttpClient("UserService", client =>
+    {
+        client.BaseAddress = new Uri("http://localhost:5001/");
+    });
 
-    
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMQSettings>();
 
     builder.Services.AddSingleton(rabbitMqConfig);

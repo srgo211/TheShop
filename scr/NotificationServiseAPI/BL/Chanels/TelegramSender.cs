@@ -16,6 +16,8 @@ public class TelegramSender : IMessageSender
 
     public async Task SendAsync(Notification notification)
     {
+        if (notification is null || String.IsNullOrWhiteSpace(notification.UserId.ToString())) return;
+
         string chatId = notification.UserId.ToString();
 
         string text = $"[{notification.Id}]\n\n<u>{notification.Theme}</u>\n\n{notification.Message}";
