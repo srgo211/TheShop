@@ -18,7 +18,7 @@ public class TelegramSender : IMessageSender
     {
         string chatId = notification.UserId.ToString();
 
-        string text = $"[{notification.Id}]\n\n<b>{notification.Theme}</b>\n\n<u>{notification.Message}</u>";
+        string text = $"[{notification.Id}]\n\n<u>{notification.Theme}</u>\n\n{notification.Message}";
 
         string uri = $"https://api.telegram.org/bot{botToken}/sendMessage";
 

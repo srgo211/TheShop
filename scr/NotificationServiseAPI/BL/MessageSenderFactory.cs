@@ -23,11 +23,12 @@ public static class MessageSenderFactory
         {
             var emailSettings = settings.GetSection("Email");
             var smtpServer = emailSettings["SMTPServer"];
+            var email = emailSettings["Email"];
             var port = int.Parse(emailSettings["Port"]);
             var username = emailSettings["Username"];
             var password = emailSettings["Password"];
 
-            senders.Add(new EmailSender(smtpServer,port,username,password));
+            senders.Add(new EmailSender(smtpServer,email,port,username,password));
 
         }
 

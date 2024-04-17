@@ -6,7 +6,8 @@ public class Notification : INotification
 {
     public Guid Id { get; set; }
     public Guid UserGuid { get; set; }
-    public long UserId { get; set; }
+    public long UserId  { get; set; }
+    public string Email { get; set; }
     public string Theme { get; set; }
     public string Message { get; set; }
     public DateTime CreatedAt { get; set; }
