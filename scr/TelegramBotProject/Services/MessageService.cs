@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Telegram.Bot;
 using TelegramBotProject.Interfaces;
 using TelegramBotProject.Interfaces.Models;
 
@@ -107,5 +108,17 @@ public class MessageService : BaseService, IMessageService
     {
         var checkUser = await httpClient.CheckUser(userId);
         if (!checkUser) await httpClient.AddUser(userId);
+    }
+
+    protected override async Task UpUser(long userId, string email)
+    {
+        bool check = await httpClient.UpUser(userId, email);
+
+        await bot.AnswerCallbackQueryAsync(userId.ToString(),
+            $"Вы подписались на уведомления",
+            cacheTime: 100,
+            showAlert: true);
+
+
     }
 }

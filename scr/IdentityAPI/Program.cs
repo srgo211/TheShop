@@ -2,12 +2,11 @@ using IdentityAPI.Interfaces.Repositorys;
 using IdentityAPI.Repositorys;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SharedDomainModels;
 using SharedInterfaces;
 using System.Text;
-using SharedDomainModels;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

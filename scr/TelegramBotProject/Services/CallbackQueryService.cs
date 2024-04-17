@@ -91,6 +91,13 @@ public class CallbackQueryService : BaseService, ICallbackQueryService
 
     }
 
+    protected override async Task UpUser(long userId, string email)
+    {
+        bool check = await httpClient.UpUser(userId, email);
+
+    }
+
+
     async Task edite(CallbackQuery callbackQuery)
     {
         // ID чата и ID сообщения, которое нужно изменить

@@ -103,6 +103,14 @@ void RegisterServices(IServiceCollection services)
     builder.Services.Configure<BotConfiguration>(configurationSection);
 
 
+    // Configure JWT authentication
+    IConfigurationSection jwtSettings = builder.Configuration.GetSection("Jwt");
+    string secretKey = jwtSettings["SecretKey"];
+    string issuey = jwtSettings["Issuer"];
+
+
+
+
     builder.Services.AddHostedService<ConfigureWebhook>();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
@@ -126,6 +134,7 @@ void RegisterServices(IServiceCollection services)
 
 
     builder.Services.AddScoped<IHttpClientService, HttpClientService>();
+    builder.Services.AddTransient<IJwtTokenService, JwtTokenService>(provider => new JwtTokenService(secretKey, issuey));
 
     builder.Services.AddTransient<ICommandHandler, CommandHandler>();
     builder.Services.AddTransient<ICallbackQueryService, CallbackQueryService>();

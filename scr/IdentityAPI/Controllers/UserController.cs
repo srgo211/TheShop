@@ -27,9 +27,15 @@ public class UserController : ControllerBase
         user.UpdatedAt = DateTime.UtcNow;
         User newUser = await userRepository.CreateAsync(user);
         string tokenJwt = default;
+
+        //получаем токен из заголовка
+        string tokenHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+        tokenHeader = ExtensionAvtorization.GetTokenFromHeader(tokenHeader);
+
         try
         {
-            tokenJwt = jwtTokenService.GenerateJwtToken(newUser);
+            if(String.IsNullOrWhiteSpace(tokenHeader)) tokenJwt = jwtTokenService.GenerateJwtToken(newUser);
+            else tokenJwt = tokenHeader;
         }
         catch (Exception e)
         {

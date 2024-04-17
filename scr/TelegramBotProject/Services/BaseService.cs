@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Net.Http;
+﻿using Telegram.Bot.Types;
 using TelegramBotProject.BusinessLogic;
 using TelegramBotProject.DTO;
 using TelegramBotProject.Interfaces;
@@ -38,7 +37,18 @@ public class BaseService
 
         if (commandStatus.Subscription == TypeStatusCommand.Wait && chek)
         {
+
+            string email = message.Text;
+            //TODO подписка
             UpStatusCommand(userId, TypeStatusCommand.Enable);
+            UpUser(userId, email);
+
+            // Удаляем сообщение пользователя
+            ///await bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
+            
+            string text = $"Вы подписались на уведомления: <u>{email}</u>";
+            await SendMessage(message.Chat.Id, text);
+
             return await MenuStore(message);
         }
 
@@ -59,12 +69,12 @@ public class BaseService
 
     protected async Task<Message> MenuStore(Message message)
     {
-
+        
 
         string text = $"Пожалуйста ознакомьтесь с меню магазина";
+        //f (!String.IsNullOrWhiteSpace(addText)) text = $"{addText}\n\n{text}";
 
-
-        ReplyKeyboardMarkup keyboard = new(
+            ReplyKeyboardMarkup keyboard = new(
             new[]
             {
                 new KeyboardButton[] { TextComands.productСatalog, TextComands.muOrders },
@@ -97,18 +107,10 @@ public class BaseService
 
     protected async Task<Message> OtherMsg(Message message)
     {
-        //string url = "https://disk.yandex.ru/i/9hfkr-gp4YWcKQ";
-        string url = "https://0ac8-31-171-195-46.ngrok-free.app/img/1.jpg";
-        //string url = "http://localhost:8080/img/1.jpg";
-        string link = $"<a href=\"{url}\">link</a>";
-        string text = "Нам пока не нужны эти данные! Спасибо!\n" + link;
+        
+        string text = "Нам пока не нужны эти данные! Спасибо!\n";
 
-        text = "<b>Просмотр товара в категории: <u>Подарки, книги, игры</u></b>\n\n" +
-               "<s>strikethrough</s>" +
-               "Фанты-флирт №8 Бутылочка\n\n" +
-               "<b>Описание:</b><code>Фанты «Бутылочка» — это игра-флирт для компании до десяти человек. Здесь не надо крутить бутылочку, зато можно здорово оторваться на горячей вечеринке или получить массу новых ощущений в отпуске или в дороге.</code>\n" +
-               $"<b>Цена:</b> 620.00 | шт<a href=\"{url}\">.</a>";
-
+       
         return await bot.SendTextMessageAsync(chatId: message.Chat.Id, text: text, parseMode: ParseMode.Html,
             disableWebPagePreview: false);
     }
@@ -268,6 +270,10 @@ public class BaseService
     protected virtual async Task<IProduct> GetProduct(int page, int itemsPerPage)
     {
         return new Product();
+    }
+
+    protected virtual async Task UpUser(long userId, string email)
+    {
     }
 
 }

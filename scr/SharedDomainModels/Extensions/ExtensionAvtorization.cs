@@ -28,7 +28,7 @@ public class ExtensionAvtorization
     public static bool IsAdmin(string headerToken)
     {
         if(string.IsNullOrWhiteSpace(headerToken)) return false;
-        if (headerToken.StartsWith("Bearer ")) headerToken = headerToken.Substring("Bearer ".Length).Trim();
+        headerToken = GetTokenFromHeader(headerToken);
 
         try
         {
@@ -51,5 +51,14 @@ public class ExtensionAvtorization
 
 
 
+    }
+
+
+    public static string GetTokenFromHeader(string headerToken)
+    {
+        if (string.IsNullOrWhiteSpace(headerToken)) return default;
+        if (headerToken.StartsWith("Bearer ")) headerToken = headerToken.Substring("Bearer ".Length);
+
+        return headerToken.Trim();
     }
 }
