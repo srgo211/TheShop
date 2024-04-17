@@ -11,12 +11,12 @@ public class NotificationApi : IApi
     public void Register(WebApplication app)
     {
         app.MapGet($"{enpoint}/getAll", async (NotificationRepository service) => await service.GetAllNotificationsAsync());
-        app.MapGet($"{enpoint}/getUserGuid/{{userGuid}}", async (NotificationRepository service, Guid userGuid) => await service.GetNotificationsByUserGuidAsync(userGuid));
-        app.MapGet($"{enpoint}/getUserId/{{userId}}", async (NotificationRepository service, long userId) => await service.GetNotificationsByUserIdAsync(userId));
-        app.MapGet($"{enpoint}/getIdNotification/{{guid}}", async (NotificationRepository service, Guid id) => await service.GetNotificationByIdAsync(id));
+        app.MapGet($"{enpoint}/getUserGuid", async (NotificationRepository service, Guid userGuid) => await service.GetNotificationsByUserGuidAsync(userGuid));
+        app.MapGet($"{enpoint}/getUserId", async (NotificationRepository service, long userId) => await service.GetNotificationsByUserIdAsync(userId));
+        app.MapGet($"{enpoint}/getIdNotification", async (NotificationRepository service, Guid guidNotigication) => await service.GetNotificationByIdAsync(guidNotigication));
         app.MapGet($"{enpoint}/getStatus", async (NotificationRepository service, SubscriptionStatus subscriptionStatus, NotificationStatus status, DateTime date) => await service.GetNotificationsByStatusAsync(subscriptionStatus, status, date));
 
-        app.MapPost($"{enpoint}/addNotification", async (NotificationRepository service, Notification notification) => {
+        app.MapPost($"{enpoint}/addNotificationFromBd", async (NotificationRepository service, Notification notification) => {
             await service.CreateNotificationAsync(notification);
             return Results.Created($"{enpoint}/getIdNotification/{notification.Id}", notification);
         });

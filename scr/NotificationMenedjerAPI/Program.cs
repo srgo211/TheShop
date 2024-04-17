@@ -1,4 +1,8 @@
 using MongoDB.Driver;
+using NotificationMenedjerAPI.Apis;
+using NotificationMenedjerAPI.Interfaces;
+using NotificationMenedjerAPI.Services;
+using NotificationMenedjerAPI.Settings;
 using NotificationServiceAPI.Apis;
 using NotificationServiceAPI.Interfaces;
 using NotificationServiceAPI.Repositorys;
@@ -78,6 +82,12 @@ void RegisterServices(IServiceCollection services, IConfiguration configuration)
     services.AddSingleton<IMongoClient>(mongoClient);
 
 
+    
+    var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMQSettings>();
+
+    builder.Services.AddSingleton(rabbitMqConfig);
+    builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>(provider =>
+        new RabbitMQService(rabbitMqConfig));
 
 
 
@@ -87,6 +97,7 @@ void RegisterServices(IServiceCollection services, IConfiguration configuration)
 
     // API registration
     services.AddTransient<IApi, NotificationApi>();
+    services.AddTransient<IApi, RabbitApi>();
 }
 void ConfigureLogging(ILoggingBuilder logging)
 {

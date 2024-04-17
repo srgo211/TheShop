@@ -5,8 +5,22 @@ namespace NotificationServiseAPI.BL.Chanels;
 
 public class EmailSender : IMessageSender
 {
-    public Task SendAsync(Notification notification)
+    private readonly string smtpServer;
+    private readonly int port;
+    private readonly string username;
+    private readonly string password;
+
+    public EmailSender(string smtpServer, int port, string username, string password)
     {
-        throw new NotImplementedException();
+        this.smtpServer = smtpServer;
+        this.port = port;
+        this.username = username;
+        this.password = password;
+    }
+
+
+    public async Task SendAsync(Notification notification)
+    {
+        await Task.Delay(2000);
     }
 }

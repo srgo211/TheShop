@@ -6,21 +6,44 @@ namespace NotificationServiseAPI.BL;
 
 public static class MessageSenderFactory
 {
+    private static IConfiguration _configuration;
+
+    public static void Initialize(IConfiguration configuration)
+    { 
+        _configuration = configuration;
+    }
+
+
     public static IMessageSender GetMessageSender(TypeChannel typeChanel)
     {
-        var senders = new List<IMessageSender>();
+        List<IMessageSender> senders = new List<IMessageSender>();
+        var settings = _configuration.GetSection("MessageSenderSettings");
 
         if (typeChanel.HasFlag(TypeChannel.Email))
         {
-            senders.Add(new EmailSender());
+            var emailSettings = settings.GetSection("Email");
+            var smtpServer = emailSettings["SMTPServer"];
+            var port = int.Parse(emailSettings["Port"]);
+            var username = emailSettings["Username"];
+            var password = emailSettings["Password"];
+
+            senders.Add(new EmailSender(smtpServer,port,username,password));
+
         }
+
         if (typeChanel.HasFlag(TypeChannel.Telegram))
         {
-            senders.Add(new TelegramSender());
+            var telegramSettings = settings.GetSection("Telegram");
+            string botToken = telegramSettings["BotToken"];
+
+            senders.Add(new TelegramSender(botToken));
         }
+        
         if (typeChanel.HasFlag(TypeChannel.File))
         {
-            const string pathFile = "notification_log.txt";
+            var fileSettings = settings.GetSection("File");
+            string pathFile = fileSettings["Path"];
+
             senders.Add(new FileSender(pathFile));
         }
 

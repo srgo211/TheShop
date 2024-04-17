@@ -14,7 +14,7 @@ public class CompositeMessageSender : IMessageSender
 
     public async Task SendAsync(Notification notification)
     {
-        foreach (var sender in senders)
+        foreach (IMessageSender sender in senders)
         {
             await sender.SendAsync(notification);
         }
