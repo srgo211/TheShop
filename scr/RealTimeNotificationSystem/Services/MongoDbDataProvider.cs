@@ -21,7 +21,7 @@ public class MongoDbDataProvider : IDataProvider<Notification>
         this.logger = logger;
     }
 
-    public async Task<IEnumerable<Notification>> FetchData()
+    public async Task<IEnumerable<Notification>> FetchDataAsync()
     {
         logger.LogInformation("Получеем уведомления из MongoDB.");
 
@@ -32,5 +32,29 @@ public class MongoDbDataProvider : IDataProvider<Notification>
 
         logger.LogInformation($"Получено {notifications.Count} уведомлений.");
         return notifications;
+    }
+
+    public async Task<bool>  UpdateDataAsync(Notification updatedNotification)
+    {
+        try
+        {
+            var updateDefinition = Builders<Notification>.Update
+                .Set(n => n.Theme, updatedNotification.Theme)
+                .Set(n => n.Message, updatedNotification.Message)
+                .Set(n => n.SendDate, updatedNotification.SendDate)
+                .Set(n => n.Status, updatedNotification.Status)
+                .Set(n => n.TypeChannel, updatedNotification.TypeChannel)
+                .Set(n => n.SubscriptionStatus, updatedNotification.SubscriptionStatus);
+
+            await collection.UpdateOneAsync(n => n.Id == updatedNotification.Id, updateDefinition);
+            return true;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e.Message);
+            return false;
+        }
+     
+        
     }
 }

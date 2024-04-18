@@ -2,5 +2,6 @@
 
 public interface IDataProvider<T>
 {
-    Task<IEnumerable<T>> FetchData();
+    Task<IEnumerable<T>> FetchDataAsync();
+    Task<bool> UpdateDataAsync(T data);
 }

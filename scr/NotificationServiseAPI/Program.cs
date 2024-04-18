@@ -1,13 +1,11 @@
 
-using System.Text.Json;
-using Microsoft.Extensions.Configuration;
 using NotificationServiseAPI;
 using NotificationServiseAPI.BL;
 using NotificationServiseAPI.Interfaces;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using SharedDomainModels;
-using SharedInterfaces;
+using System.Text.Json;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

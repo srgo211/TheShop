@@ -40,4 +40,14 @@ public class RabbitMqSender : IMessageSender<Notification>
         channel.BasicPublish(exchange: "", routingKey: "notifications", basicProperties: null, body: body);
         return Task.CompletedTask;
     }
+
+    public Task UpdateMessageAsync(Notification message)
+    {
+        logger.LogInformation($"Обновляем уведомление ID:{message.Id}");
+
+
+       
+        return Task.CompletedTask;
+    }
+
 }
