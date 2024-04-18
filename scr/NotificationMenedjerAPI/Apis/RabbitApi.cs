@@ -24,7 +24,7 @@ public class RabbitApi : IApi
                 IRabbitMQService rabbitMQService, IHttpClientFactory httpClientFactory) =>
         {
             var client = httpClientFactory.CreateClient("UserService");
-            string url = $"user/getUserFromUserId?id={userGuid}";
+            string url = $"{client.BaseAddress}user/getUserFromGuid?guid={userGuid}";
 
             User user = default;
             try
