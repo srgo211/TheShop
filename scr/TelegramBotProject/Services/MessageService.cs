@@ -110,7 +110,7 @@ public class MessageService : BaseService, IMessageService
         if (!checkUser) await httpClient.AddUser(userId);
     }
 
-    protected override async Task UpUser(long userId, string email)
+    protected override async Task UpUserAsync(long userId, string email)
     {
         bool check = await httpClient.UpUser(userId, email);
 

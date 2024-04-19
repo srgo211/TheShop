@@ -41,10 +41,7 @@ public class BaseService
             string email = message.Text;
             //TODO подписка
             UpStatusCommand(userId, TypeStatusCommand.Enable);
-            UpUser(userId, email);
-
-            // Удаляем сообщение пользователя
-            ///await bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
+            await UpUserAsync(userId, email);
             
             string text = $"Вы подписались на уведомления: <u>{email}</u>";
             await SendMessage(message.Chat.Id, text);
@@ -272,7 +269,7 @@ public class BaseService
         return new Product();
     }
 
-    protected virtual async Task UpUser(long userId, string email)
+    protected virtual async Task UpUserAsync(long userId, string email)
     {
     }
 

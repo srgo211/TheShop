@@ -1,5 +1,4 @@
-﻿using Telegram.Bot.Types;
-using TelegramBotProject.Interfaces;
+﻿using TelegramBotProject.Interfaces;
 using TelegramBotProject.Interfaces.Models;
 
 namespace TelegramBotProject.Services;
@@ -91,7 +90,7 @@ public class CallbackQueryService : BaseService, ICallbackQueryService
 
     }
 
-    protected override async Task UpUser(long userId, string email)
+    protected override async Task UpUserAsync(long userId, string email)
     {
         bool check = await httpClient.UpUser(userId, email);
 
